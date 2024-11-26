@@ -6,34 +6,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-  <title>
-    Material Dashboard 3 by Creative Tim
-  </title>
-  <!--     Fonts and icons     -->
+  <title>Secury - Sign Up</title>
+  <!-- Fonts and icons -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
-  <!-- Nucleo Icons -->
   <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-  <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-  <!-- Material Icons -->
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-  <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </head>
 
 <body class="">
   <div class="container position-sticky z-index-sticky top-0">
     <div class="row">
       <div class="col-12">
-        <!-- Navbar -->
         <nav
           class="navbar navbar-expand-lg blur border-radius-lg top-0 z-index-3 shadow position-absolute mt-4 py-2 start-0 end-0 mx-4">
           <div class="container-fluid ps-2 pe-0">
-            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="../pages/dashboard.html">
-              Secury
-            </a>
+            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3" href="../pages/dashboard.html">Secury</a>
             <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse"
               data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false"
               aria-label="Toggle navigation">
@@ -48,37 +40,32 @@
                 <li class="nav-item">
                   <a class="nav-link d-flex align-items-center me-2 active" aria-current="page"
                     href="../pages/dashboard.html">
-                    <i class="fa fa-chart-pie opacity-6 text-dark me-1"></i>
-                    Dashboard
+                    <i class="fa fa-chart-pie opacity-6 text-dark me-1"></i> Dashboard
                   </a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link me-2" href="../pages/profile.html">
-                    <i class="fa fa-user opacity-6 text-dark me-1"></i>
-                    Profile
+                    <i class="fa fa-user opacity-6 text-dark me-1"></i> Profile
                   </a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link me-2" href="../pages/sign-up.html">
-                    <i class="fas fa-user-circle opacity-6 text-dark me-1"></i>
-                    Sign Up
+                    <i class="fas fa-user-circle opacity-6 text-dark me-1"></i> Sign Up
                   </a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link me-2" href="../pages/sign-in.html">
-                    <i class="fas fa-key opacity-6 text-dark me-1"></i>
-                    Sign In
+                    <i class="fas fa-key opacity-6 text-dark me-1"></i> Sign In
                   </a>
                 </li>
               </ul>
             </div>
           </div>
         </nav>
-        <!-- End Navbar -->
       </div>
     </div>
   </div>
-  <main class="main-content  mt-0">
+  <main class="main-content mt-0">
     <section>
       <div class="page-header min-vh-100">
         <div class="container">
@@ -97,27 +84,34 @@
                   <p class="mb-0">Enter your email and password to register</p>
                 </div>
                 <div class="card-body">
-                  <form role="form">
+                  <form role="form" id="signUpForm">
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Name</label>
-                      <input type="text" class="form-control">
+                      <input type="text" class="form-control" id="name" placeholder="Name">
                     </div>
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Email</label>
-                      <input type="email" class="form-control">
+                      <input type="email" class="form-control" id="email" placeholder="Email">
                     </div>
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Password</label>
-                      <input type="password" class="form-control">
+                      <input type="password" class="form-control" id="password" placeholder="Password">
+                    </div>
+                    <div class="input-group input-group-outline mb-3">
+                      <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password">
+                    </div>
+                    <div id="passwordRequirements" class="mb-3">
+                      <p id="length" class="text-danger">Must be at least 6 characters long</p>
+                      <p id="uppercase" class="text-danger">Must contain an uppercase letter</p>
+                      <p id="symbol" class="text-danger">Must contain a symbol</p>
                     </div>
                     <div class="form-check form-check-info text-start ps-0">
                       <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
                       <label class="form-check-label" for="flexCheckDefault">
-                        I agree the <a href="javascript:;" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                        I agree to the <a href="javascript:;" class="text-dark font-weight-bolder">Terms and
+                          Conditions</a>
                       </label>
                     </div>
                     <div class="text-center">
-                      <button type="button" class="btn btn-lg bg-gradient-dark btn-lg w-100 mt-4 mb-0">Sign Up</button>
+                      <button type="button" class="btn btn-lg bg-gradient-dark btn-lg w-100 mt-4 mb-0"
+                        onclick="validateForm()">Sign Up</button>
                     </div>
                   </form>
                 </div>
@@ -134,24 +128,97 @@
       </div>
     </section>
   </main>
-  <!--   Core JS Files   -->
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
-  <script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = {
-        damping: '0.5'
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import firebaseConfig from "../config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const length = document.getElementById("length");
+    const uppercase = document.getElementById("uppercase");
+    const symbol = document.getElementById("symbol");
+
+    password.addEventListener("input", validatePassword);
+    confirmPassword.addEventListener("input", validatePassword);
+
+    function validatePassword() {
+      const passwordValue = password.value;
+      const confirmPasswordValue = confirmPassword.value;
+
+      // Check password length
+      if (passwordValue.length >= 6) {
+        length.classList.remove("text-danger");
+        length.classList.add("text-success");
+      } else {
+        length.classList.remove("text-success");
+        length.classList.add("text-danger");
       }
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+
+      // Check for uppercase
+      if (/[A-Z]/.test(passwordValue)) {
+        uppercase.classList.remove("text-danger");
+        uppercase.classList.add("text-success");
+      } else {
+        uppercase.classList.remove("text-success");
+        uppercase.classList.add("text-danger");
+      }
+
+      // Check for symbol
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(passwordValue)) {
+        symbol.classList.remove("text-danger");
+        symbol.classList.add("text-success");
+      } else {
+        symbol.classList.remove("text-success");
+        symbol.classList.add("text-danger");
+      }
+
+      // Check if passwords match
+      if (passwordValue === confirmPasswordValue && confirmPasswordValue) {
+        confirmPassword.classList.remove("is-invalid");
+        confirmPassword.classList.add("is-valid");
+      } else {
+        confirmPassword.classList.remove("is-valid");
+        confirmPassword.classList.add("is-invalid");
+      }
     }
+
+    window.validateForm = async function validateForm() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const passwordValue = password.value;
+
+      if (
+        passwordValue.length >= 6 &&
+        /[A-Z]/.test(passwordValue) &&
+        /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) &&
+        passwordValue === confirmPassword.value
+      ) {
+        const hashedPassword = CryptoJS.SHA256(passwordValue).toString();
+        try {
+          await addDoc(collection(db, "waiting"), {
+            name,
+            email,
+            password: hashedPassword,
+            timestamp: serverTimestamp(),
+          });
+          alert("Registration successful!");
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred.");
+        }
+      } else {
+        alert("Check your password or confirm the inputs!");
+      }
+    };
   </script>
-  <!-- Github buttons -->
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-  <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
 </body>
 
 </html>
