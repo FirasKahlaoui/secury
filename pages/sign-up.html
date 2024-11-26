@@ -194,6 +194,7 @@
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const passwordValue = password.value;
+      const type = 1;
 
       if (
         passwordValue.length >= 6 &&
@@ -208,6 +209,7 @@
             email,
             password: hashedPassword,
             timestamp: serverTimestamp(),
+            type,
           });
           alert("Registration successful!");
           window.location.href = "../pages/sign-in.html";
