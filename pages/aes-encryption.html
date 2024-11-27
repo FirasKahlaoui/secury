@@ -336,42 +336,80 @@
             });
         }
 
-        // Function to decrypt the secret
+        // Function to decrypt the secret stored in Firebase
         function decryptSecret(encryptedSecret) {
-            const bytes = CryptoJS.AES.decrypt(encryptedSecret, 'your-encryption-key');
-            return bytes.toString(CryptoJS.enc.Utf8);
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedSecret, 'your-encryption-key');
+                return bytes.toString(CryptoJS.enc.Utf8);
+            } catch (error) {
+                console.error("Error decrypting secret:", error);
+                return null;
+            }
         }
 
-        // Call fetchKeys on page load
-        document.addEventListener('DOMContentLoaded', fetchKeys);
+        // Utility: Parse the key to match the required size
+        function parseKey(key, keySize) {
+            let keyHex = CryptoJS.enc.Hex.parse(key);
+            const requiredLength = keySize / 8; // Key size is in bits, convert to bytes
+
+            if (keyHex.sigBytes !== requiredLength) {
+                const paddedKey = keyHex.words.slice(0, requiredLength / 4);
+                keyHex = CryptoJS.lib.WordArray.create(paddedKey, requiredLength);
+            }
+            return keyHex;
+        }
+
+        // Utility: Hash the key if needed to fit the required size
+        function hashKey(key, keySize) {
+            const hash = CryptoJS.SHA256(key); // Always creates a 256-bit hash
+            const truncatedHash = CryptoJS.lib.WordArray.create(hash.words.slice(0, keySize / 32), keySize / 8);
+            return truncatedHash;
+        }
 
         // Function to encrypt data
         window.encryptData = function () {
-            const keySize = document.getElementById('keySize').value;
+            const keySize = parseInt(document.getElementById('keySize').value); // Ensure keySize is a number
             const key = document.getElementById('keyVault').value;
             const plainText = document.getElementById('plainText').value;
 
-            const keyHex = CryptoJS.enc.Hex.parse(key);
-            const encrypted = CryptoJS.AES.encrypt(plainText, keyHex, {
-                mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.Pkcs7
-            });
+            const keyHex = parseKey(key, keySize); // Use parsed key
+            try {
+                const encrypted = CryptoJS.AES.encrypt(plainText, keyHex, {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
 
-            document.getElementById('cipherText').value = encrypted.toString();
+                document.getElementById('cipherText').value = encrypted.toString();
+            } catch (error) {
+                console.error("Encryption error:", error);
+                alert("Encryption failed! Check your input.");
+            }
         }
 
         // Function to decrypt data
         window.decryptData = function () {
+            const keySize = parseInt(document.getElementById('keySize').value); // Ensure keySize is a number
             const key = document.getElementById('keyVault').value;
             const cipherText = document.getElementById('cipherText').value;
 
-            const keyHex = CryptoJS.enc.Hex.parse(key);
-            const decrypted = CryptoJS.AES.decrypt(cipherText, keyHex, {
-                mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.Pkcs7
-            });
+            const keyHex = parseKey(key, keySize); // Use parsed key
 
-            document.getElementById('decryptedText').value = decrypted.toString(CryptoJS.enc.Utf8);
+            try {
+                const decrypted = CryptoJS.AES.decrypt(cipherText, keyHex, {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+                if (!decryptedText) {
+                    console.error("Decryption failed. Possible incorrect key or cipher text.");
+                }
+
+                document.getElementById('decryptedText').value = decryptedText;
+            } catch (error) {
+                console.error("Decryption error:", error);
+                alert("Decryption failed! Check your key and ciphertext.");
+            }
         }
 
         // Function to clear fields
@@ -387,7 +425,11 @@
             textArea.select();
             document.execCommand('copy');
         }
+
+        // Call fetchKeys on page load
+        document.addEventListener('DOMContentLoaded', fetchKeys);
     </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </body>
 
