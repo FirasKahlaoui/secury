@@ -204,7 +204,34 @@
         </nav>
         <!-- End Navbar -->
 
-
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6>Key Vault</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="form-message" class="text-danger mb-3"></div>
+                            <form id="keyVaultForm">
+                                <div class="mb-3">
+                                    <label for="secretName" class="form-label">Secret Name</label>
+                                    <input type="text" class="form-control" id="secretName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="secretValue" class="form-label">Secret Value</label>
+                                    <input type="text" class="form-control" id="secretValue" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Create Secret</button>
+                            </form>
+                            <hr>
+                            <h6>My Secrets</h6>
+                            <ul id="secretsList" class="list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <footer class="footer py-4">
             <div class="container-fluid">
                 <div class="row align-items-center justify-content-center">
@@ -268,6 +295,102 @@
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Get the logged-in user's email from localStorage
+        const userEmail = localStorage.getItem('userEmail');
+
+        // Function to encrypt the secret
+        function encryptSecret(secret) {
+            return CryptoJS.AES.encrypt(secret, 'your-encryption-key').toString();
+        }
+
+        // Function to decrypt the secret
+        function decryptSecret(encryptedSecret) {
+            const bytes = CryptoJS.AES.decrypt(encryptedSecret, 'your-encryption-key');
+            return bytes.toString(CryptoJS.enc.Utf8);
+        }
+
+        // Handle form submission
+        document.getElementById('keyVaultForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const secretName = document.getElementById('secretName').value;
+            const secretValue = document.getElementById('secretValue').value;
+            const encryptedSecret = encryptSecret(secretValue);
+            const formMessage = document.getElementById('form-message');
+
+            try {
+                await addDoc(collection(db, 'keyvault'), {
+                    owner: userEmail,
+                    secretName: secretName,
+                    secret: encryptedSecret
+                });
+                formMessage.textContent = 'Secret created successfully!';
+                formMessage.classList.remove('text-danger');
+                formMessage.classList.add('text-success');
+                document.getElementById('keyVaultForm').reset();
+                loadSecrets();
+            } catch (error) {
+                console.error('Error creating secret:', error);
+                formMessage.textContent = 'Failed to create secret.';
+                formMessage.classList.remove('text-success');
+                formMessage.classList.add('text-danger');
+            }
+        });
+
+        // Function to load secrets
+        async function loadSecrets() {
+            const secretsList = document.getElementById('secretsList');
+            secretsList.innerHTML = '';
+
+            const secretsQuery = query(collection(db, 'keyvault'), where('owner', '==', userEmail));
+            const querySnapshot = await getDocs(secretsQuery);
+
+            querySnapshot.forEach((doc) => {
+                const secretData = doc.data();
+                const decryptedSecret = decryptSecret(secretData.secret);
+
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+          <span>${secretData.secretName}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteSecret('${doc.id}')">Delete</button>
+        `;
+                secretsList.appendChild(listItem);
+            });
+        }
+
+        // Function to delete a secret
+        window.deleteSecret = async function (secretId) {
+            const formMessage = document.getElementById('form-message');
+            try {
+                await deleteDoc(doc(db, 'keyvault', secretId));
+                formMessage.textContent = 'Secret deleted successfully!';
+                formMessage.classList.remove('text-danger');
+                formMessage.classList.add('text-success');
+                loadSecrets();
+            } catch (error) {
+                console.error('Error deleting secret:', error);
+                formMessage.textContent = 'Failed to delete secret.';
+                formMessage.classList.remove('text-success');
+                formMessage.classList.add('text-danger');
+            }
+        };
+
+        // Load secrets on page load
+        document.addEventListener('DOMContentLoaded', loadSecrets);
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+
 </body>
 
 </html>
