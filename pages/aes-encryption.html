@@ -204,7 +204,31 @@
         </nav>
         <!-- End Navbar -->
 
-        
+        <div class="container mt-4">
+            <h3>AES Encryption</h3>
+            <div class="form-group">
+                <label for="keySize">Select Key Size:</label>
+                <select class="form-control" id="keySize">
+                    <option value="128">128-bit</option>
+                    <option value="192">192-bit</option>
+                    <option value="256">256-bit</option>
+                </select>
+            </div>
+            <div class="form-group mt-3">
+                <label for="keyVault">Select Key from Key Vault:</label>
+                <select class="form-control" id="keyVault"></select>
+            </div>
+            <div class="form-group mt-3">
+                <label for="plainText">Plain Text:</label>
+                <textarea class="form-control" id="plainText" rows="3"></textarea>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="encryptData()">Encrypt</button>
+            <button class="btn btn-secondary mt-3" onclick="decryptData()">Decrypt</button>
+            <div class="form-group mt-3">
+                <label for="cipherText">Cipher Text:</label>
+                <textarea class="form-control" id="cipherText" rows="3" readonly></textarea>
+            </div>
+        </div>
         <footer class="footer py-4">
             <div class="container-fluid">
                 <div class="row align-items-center justify-content-center">
@@ -268,6 +292,81 @@
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Get the logged-in user's email from localStorage
+        const userEmail = localStorage.getItem('userEmail');
+
+        // Function to fetch keys from the key vault
+        async function fetchKeys() {
+            const keyVault = document.getElementById('keyVault');
+            keyVault.innerHTML = '';
+
+            const keysQuery = query(collection(db, 'keyvault'), where('owner', '==', userEmail));
+            const querySnapshot = await getDocs(keysQuery);
+
+            querySnapshot.forEach((doc) => {
+                const secretData = doc.data();
+                const decryptedSecret = decryptSecret(secretData.secret);
+
+                const option = document.createElement('option');
+                option.value = decryptedSecret;
+                option.textContent = secretData.secretName;
+                keyVault.appendChild(option);
+            });
+        }
+
+        // Function to decrypt the secret
+        function decryptSecret(encryptedSecret) {
+            const bytes = CryptoJS.AES.decrypt(encryptedSecret, 'your-encryption-key');
+            return bytes.toString(CryptoJS.enc.Utf8);
+        }
+
+        // Call fetchKeys on page load
+        document.addEventListener('DOMContentLoaded', fetchKeys);
+
+        // Function to encrypt data
+        function encryptData() {
+            const keySize = document.getElementById('keySize').value;
+            const key = document.getElementById('keyVault').value;
+            const plainText = document.getElementById('plainText').value;
+
+            const keyHex = CryptoJS.enc.Hex.parse(key);
+            const encrypted = CryptoJS.AES.encrypt(plainText, keyHex, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7,
+                keySize: parseInt(keySize) / 32
+            });
+
+            document.getElementById('cipherText').value = encrypted.toString();
+        }
+
+        // Function to decrypt data
+        function decryptData() {
+            const key = document.getElementById('keyVault').value;
+            const cipherText = document.getElementById('cipherText').value;
+
+            const keyHex = CryptoJS.enc.Hex.parse(key);
+            const decrypted = CryptoJS.AES.decrypt(cipherText, keyHex, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            });
+
+            document.getElementById('plainText').value = decrypted.toString(CryptoJS.enc.Utf8);
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </body>
 
 </html>
