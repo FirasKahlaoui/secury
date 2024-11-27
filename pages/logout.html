@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Out...</title>
+</head>
+
+<body>
+    <script>
+        // Clear the login status
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userEmail');
+
+        // Redirect to the sign-in page
+        window.location.href = '../pages/sign-in.html';
+    </script>
+</body>
+
+</html>
