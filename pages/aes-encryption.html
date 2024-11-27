@@ -354,8 +354,7 @@
             const keyHex = CryptoJS.enc.Hex.parse(key);
             const encrypted = CryptoJS.AES.encrypt(plainText, keyHex, {
                 mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.Pkcs7,
-                keySize: parseInt(keySize) / 32
+                padding: CryptoJS.pad.Pkcs7
             });
 
             document.getElementById('cipherText').value = encrypted.toString();
