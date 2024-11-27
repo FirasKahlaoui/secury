@@ -216,7 +216,9 @@
             </div>
             <div class="form-group mt-3">
                 <label for="keyVault">Select Key from Key Vault:</label>
-                <select class="form-control" id="keyVault"></select>
+                <select class="form-control" id="keyVault">
+                    <option value="">Select your key</option>
+                </select>
             </div>
             <div class="form-group mt-3">
                 <label for="plainText">Plain Text:</label>
@@ -224,9 +226,16 @@
             </div>
             <button class="btn btn-primary mt-3" onclick="encryptData()">Encrypt</button>
             <button class="btn btn-secondary mt-3" onclick="decryptData()">Decrypt</button>
+            <button class="btn btn-warning mt-3" onclick="clearFields()">Clear Fields</button>
             <div class="form-group mt-3">
                 <label for="cipherText">Cipher Text:</label>
                 <textarea class="form-control" id="cipherText" rows="3" readonly></textarea>
+                <button class="btn btn-info mt-2" onclick="copyText('cipherText')">Copy Cipher Text</button>
+            </div>
+            <div class="form-group mt-3">
+                <label for="decryptedText">Decrypted Text:</label>
+                <textarea class="form-control" id="decryptedText" rows="3" readonly></textarea>
+                <button class="btn btn-info mt-2" onclick="copyText('decryptedText')">Copy Decrypted Text</button>
             </div>
         </div>
         <footer class="footer py-4">
@@ -311,7 +320,7 @@
         // Function to fetch keys from the key vault
         async function fetchKeys() {
             const keyVault = document.getElementById('keyVault');
-            keyVault.innerHTML = '';
+            keyVault.innerHTML = '<option value="">Select your key</option>';
 
             const keysQuery = query(collection(db, 'keyvault'), where('owner', '==', userEmail));
             const querySnapshot = await getDocs(keysQuery);
@@ -337,7 +346,7 @@
         document.addEventListener('DOMContentLoaded', fetchKeys);
 
         // Function to encrypt data
-        function encryptData() {
+        window.encryptData = function () {
             const keySize = document.getElementById('keySize').value;
             const key = document.getElementById('keyVault').value;
             const plainText = document.getElementById('plainText').value;
@@ -353,7 +362,7 @@
         }
 
         // Function to decrypt data
-        function decryptData() {
+        window.decryptData = function () {
             const key = document.getElementById('keyVault').value;
             const cipherText = document.getElementById('cipherText').value;
 
@@ -363,7 +372,21 @@
                 padding: CryptoJS.pad.Pkcs7
             });
 
-            document.getElementById('plainText').value = decrypted.toString(CryptoJS.enc.Utf8);
+            document.getElementById('decryptedText').value = decrypted.toString(CryptoJS.enc.Utf8);
+        }
+
+        // Function to clear fields
+        window.clearFields = function () {
+            document.getElementById('plainText').value = '';
+            document.getElementById('cipherText').value = '';
+            document.getElementById('decryptedText').value = '';
+        }
+
+        // Function to copy text
+        window.copyText = function (elementId) {
+            const textArea = document.getElementById(elementId);
+            textArea.select();
+            document.execCommand('copy');
         }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
