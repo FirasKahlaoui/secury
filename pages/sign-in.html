@@ -184,6 +184,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Global variable to store user email
+    let userEmail = '';
+
     // Sign-In Function (attached to window)
     window.signIn = async function () {
       const email = document.getElementById("email").value.trim();
@@ -209,6 +212,9 @@
 
         if (!usersSnapshot.empty) {
           // User found in 'users'
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userEmail', email); // Save user email in localStorage
+          userEmail = email; // Update global variable
           window.location.href = "../pages/dashboard.html";
           return;
         }

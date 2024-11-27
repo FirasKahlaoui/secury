@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initi</a>al-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>
@@ -39,26 +39,26 @@
       <ul class="navbar-nav">
         <li class="nav-item">
           <a class="nav-link active bg-gradient-dark text-white" href="../pages/dashboard.html">
-        <i class="material-symbols-rounded opacity-5">dashboard</i>
-        <span class="nav-link-text ms-1">Dashboard</span>
+            <i class="material-symbols-rounded opacity-5">dashboard</i>
+            <span class="nav-link-text ms-1">Dashboard</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link text-dark" href="../pages/cysar-encryption.html">
-        <i class="material-symbols-rounded opacity-5">lock</i>
-        <span class="nav-link-text ms-1">Cysar Encryption</span>
+            <i class="material-symbols-rounded opacity-5">lock</i>
+            <span class="nav-link-text ms-1">Cysar Encryption</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link text-dark" href="../pages/aes-encryption.html">
-        <i class="material-symbols-rounded opacity-5">vpn_key</i>
-        <span class="nav-link-text ms-1">AES Encryption</span>
+            <i class="material-symbols-rounded opacity-5">vpn_key</i>
+            <span class="nav-link-text ms-1">AES Encryption</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link text-dark" href="../pages/key-vault.html">
-        <i class="material-symbols-rounded opacity-5">key</i>
-        <span class="nav-link-text ms-1">Key Vault</span>
+            <i class="material-symbols-rounded opacity-5">key</i>
+            <span class="nav-link-text ms-1">Key Vault</span>
           </a>
         </li>
         <li class="nav-item mt-3">
@@ -66,28 +66,28 @@
         </li>
         <li class="nav-item">
           <a class="nav-link text-dark" href="../pages/profile.html">
-        <i class="material-symbols-rounded opacity-5">person</i>
-        <span class="nav-link-text ms-1">Profile</span>
+            <i class="material-symbols-rounded opacity-5">person</i>
+            <span class="nav-link-text ms-1">Profile</span>
           </a>
         </li>
         <!-- Check if user is signed in -->
-        <li class="nav-item">
+        <li class="nav-item" id="nav-logout">
           <a class="nav-link text-dark" href="../pages/logout.html">
-        <i class="material-symbols-rounded opacity-5">logout</i>
-        <span class="nav-link-text ms-1">Logout</span>
+            <i class="material-symbols-rounded opacity-5">logout</i>
+            <span class="nav-link-text ms-1">Logout</span>
           </a>
         </li>
         <!-- If user is not signed in -->
-        <li class="nav-item">
+        <li class="nav-item" id="nav-sign-in">
           <a class="nav-link text-dark" href="../pages/sign-in.html">
-        <i class="material-symbols-rounded opacity-5">login</i>
-        <span class="nav-link-text ms-1">Sign In</span>
+            <i class="material-symbols-rounded opacity-5">login</i>
+            <span class="nav-link-text ms-1">Sign In</span>
           </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" id="nav-sign-up">
           <a class="nav-link text-dark" href="../pages/sign-up.html">
-        <i class="material-symbols-rounded opacity-5">assignment</i>
-        <span class="nav-link-text ms-1">Sign Up</span>
+            <i class="material-symbols-rounded opacity-5">assignment</i>
+            <span class="nav-link-text ms-1">Sign Up</span>
           </a>
         </li>
       </ul>
@@ -276,7 +276,8 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer p-2 ps-3">
-              <p class="mb-0 text-sm"><span class="text-warning font-weight-bolder">+15% </span>compared to last week</p>
+              <p class="mb-0 text-sm"><span class="text-warning font-weight-bolder">+15% </span>compared to last week
+              </p>
             </div>
           </div>
         </div>
@@ -338,24 +339,24 @@
         </div>
       </div>
     </div>
-    
 
-      <footer class="footer py-4">
-        <div class="container-fluid">
-          <div class="row align-items-center justify-content-center">
-        <div class="col-lg-6 mb-lg-0 mb-4"></div>
+
+    <footer class="footer py-4">
+      <div class="container-fluid">
+        <div class="row align-items-center justify-content-center">
+          <div class="col-lg-6 mb-lg-0 mb-4"></div>
           <div class="copyright text-center text-sm text-muted">
             ©
             <script>
-          document.write(new Date().getFullYear())
+              document.write(new Date().getFullYear())
             </script>,
             made with <i class="fa fa-heart"></i> by
             <a href="https://github.com/FirasKahlaoui" class="font-weight-bold" target="_blank">Firas Kahlaoui</a>
           </div>
         </div>
-          </div>
-        </div>
-      </footer>
+      </div>
+      </div>
+    </footer>
     </div>
   </main>
   <!--   Core JS Files   -->
@@ -610,6 +611,32 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
+  <script>
+    // Function to check if the user is logged in
+    function checkLoginStatus() {
+      // Replace this with your actual login status check
+      const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
+
+      // Get the navigation items
+      const navLogout = document.getElementById('nav-logout');
+      const navSignIn = document.getElementById('nav-sign-in');
+      const navSignUp = document.getElementById('nav-sign-up');
+
+      // Toggle visibility based on login status
+      if (isLoggedIn) {
+        navLogout.style.display = 'block';
+        navSignIn.style.display = 'none';
+        navSignUp.style.display = 'none';
+      } else {
+        navLogout.style.display = 'none';
+        navSignIn.style.display = 'block';
+        navSignUp.style.display = 'block';
+      }
+    }
+
+    // Call the function on page load
+    document.addEventListener('DOMContentLoaded', checkLoginStatus);
+  </script>
 </body>
 
 </html>
