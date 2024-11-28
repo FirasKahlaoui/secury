@@ -190,7 +190,7 @@
 
     // Fetch environment variables from the server
     async function fetchEnvVariables() {
-      const response = await fetch('/env');
+      const response = await fetch('http://localhost:3000/env');
       const env = await response.json();
       OUTLOOK_EMAIL = env.OUTLOOK_EMAIL;
       SMTPJS_SECURE_TOKEN = env.SMTPJS_SECURE_TOKEN;
@@ -243,7 +243,7 @@
             Body: `Your verification code is ${verificationCode}`,
           }).then(() => {
             alert("Sign-in successful! Please check your email for the verification code.");
-            localStorage.setItem('userEmail', email); // Store email in localStorage for verification
+            localStorage.setItem('userEmail', email);
             window.location.href = "../pages/verify.html";
           }).catch((error) => {
             console.error("Error sending email:", error);
@@ -261,6 +261,7 @@
 
   <!-- Add the global script for CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+  <script src="../smtp.js"></script>
 
 </body>
 
