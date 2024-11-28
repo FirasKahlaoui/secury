@@ -44,6 +44,26 @@
       text-align: center;
       margin-top: 1rem;
     }
+
+    .loading-bar {
+      width: 100%;
+      height: 4px;
+      background-color: #000;
+      position: absolute;
+      top: 0;
+      left: 0;
+      animation: loading 3s linear;
+    }
+
+    @keyframes loading {
+      from {
+        width: 0;
+      }
+
+      to {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 
@@ -147,6 +167,7 @@
                     <a href="../pages/sign-up.html" class="text-primary text-gradient font-weight-bold">Sign up</a>
                   </p>
                   <p id="error-message" class="error-message"></p>
+                  <div id="loading-bar" class="loading-bar" style="display: none;"></div>
                 </form>
               </div>
             </div>
@@ -180,7 +201,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import firebaseConfig from "../config.js";
-
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
@@ -226,9 +246,16 @@
             to_email: email,
             verification_code: verificationCode
           }).then(function (response) {
-            alert("Sign-in successful! Please check your email for the verification code.");
+            // Show loading bar
+            document.getElementById("loading-bar").style.display = "block";
+
+            // Store user email in localStorage
             localStorage.setItem('userEmail', email);
-            window.location.href = "../pages/verify.html";
+
+            // Redirect to verify page after 3 seconds
+            setTimeout(() => {
+              window.location.href = "../pages/verify.html";
+            }, 3000);
           }, function (error) {
             console.error("Error sending email:", error);
             errorMessage.textContent = "An error occurred while sending the verification email.";
