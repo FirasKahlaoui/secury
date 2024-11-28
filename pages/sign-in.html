@@ -181,21 +181,10 @@
     import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import firebaseConfig from "../config.js";
 
+
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    let OUTLOOK_EMAIL = '';
-
-    // Fetch environment variables from the server
-    async function fetchEnvVariables() {
-      const response = await fetch('http://localhost:3000/env');
-      const env = await response.json();
-      OUTLOOK_EMAIL = env.OUTLOOK_EMAIL;
-    }
-
-    // Call the function to fetch environment variables on page load
-    document.addEventListener('DOMContentLoaded', fetchEnvVariables);
 
     // Sign-In Function (attached to window)
     window.signIn = async function () {
@@ -232,22 +221,18 @@
             verificationCode,
           });
 
-          // Send verification email
-          const response = await fetch('http://localhost:3000/send-verification-email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, verificationCode }),
-          });
-
-          if (response.ok) {
+          // Send verification email using EmailJS
+          emailjs.send("service_scwjxdl", "template_36yw543", {
+            to_email: email,
+            verification_code: verificationCode
+          }).then(function (response) {
             alert("Sign-in successful! Please check your email for the verification code.");
             localStorage.setItem('userEmail', email);
             window.location.href = "../pages/verify.html";
-          } else {
+          }, function (error) {
+            console.error("Error sending email:", error);
             errorMessage.textContent = "An error occurred while sending the verification email.";
-          }
+          });
         } else {
           errorMessage.textContent = "Invalid email or password.";
         }
@@ -257,9 +242,15 @@
       }
     };
   </script>
-
   <!-- Add the global script for CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+  <!-- Add the EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function () {
+      emailjs.init("EsxFOFbF-26aaL3gh");
+    })();
+  </script>
 
 </body>
 
