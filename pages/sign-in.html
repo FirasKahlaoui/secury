@@ -243,7 +243,7 @@
 
           // Send verification email using EmailJS
           emailjs.send("service_scwjxdl", "template_36yw543", {
-            to_email: email,
+            to_email: email, // This should be the user's email address
             verification_code: verificationCode
           }).then(function (response) {
             // Show loading bar
