@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email</title>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.verifyCode = async function verifyCode() {
+            const email = document.getElementById("email").value;
+            const code = document.getElementById("code").value;
+
+            try {
+                const usersQuery = query(collection(db, "waiting"), where("email", "==", email), where("verificationCode", "==", code));
+                const querySnapshot = await getDocs(usersQuery);
+
+                if (!querySnapshot.empty) {
+                    const userDoc = querySnapshot.docs[0];
+                    const userData = userDoc.data();
+
+                    // Move user from "waiting" to "users" collection
+                    await addDoc(collection(db, "users"), {
+                        name: userData.name,
+                        email: userData.email,
+                        password: userData.password,
+                        timestamp: userData.timestamp,
+                        type: userData.type,
+                    });
+
+                    // Delete user from "waiting" collection
+                    await deleteDoc(doc(db, "waiting", userDoc.id));
+
+                    alert("Verification successful! You can now sign in.");
+                    window.location.href = "../pages/sign-in.html";
+                } else {
+                    alert("Invalid verification code or email.");
+                }
+            } catch (error) {
+                console.error("Error verifying code:", error);
+                alert("An error occurred during verification.");
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <form onsubmit="event.preventDefault(); verifyCode();">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="code" placeholder="Verification Code" required>
+        <button type="submit">Verify</button>
+    </form>
+</body>
+
+</html>
