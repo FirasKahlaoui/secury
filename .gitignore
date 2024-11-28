@@ -1,3 +1,4 @@
 .env
 config.js
-smtp.js
+node_modules/
+

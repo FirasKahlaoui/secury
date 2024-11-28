@@ -186,14 +186,12 @@
     const db = getFirestore(app);
 
     let OUTLOOK_EMAIL = '';
-    let SMTPJS_SECURE_TOKEN = '';
 
     // Fetch environment variables from the server
     async function fetchEnvVariables() {
       const response = await fetch('http://localhost:3000/env');
       const env = await response.json();
       OUTLOOK_EMAIL = env.OUTLOOK_EMAIL;
-      SMTPJS_SECURE_TOKEN = env.SMTPJS_SECURE_TOKEN;
     }
 
     // Call the function to fetch environment variables on page load
@@ -235,20 +233,21 @@
           });
 
           // Send verification email
-          Email.send({
-            SecureToken: SMTPJS_SECURE_TOKEN,
-            To: email,
-            From: OUTLOOK_EMAIL,
-            Subject: "Your Verification Code",
-            Body: `Your verification code is ${verificationCode}`,
-          }).then(() => {
+          const response = await fetch('http://localhost:3000/send-verification-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, verificationCode }),
+          });
+
+          if (response.ok) {
             alert("Sign-in successful! Please check your email for the verification code.");
             localStorage.setItem('userEmail', email);
             window.location.href = "../pages/verify.html";
-          }).catch((error) => {
-            console.error("Error sending email:", error);
+          } else {
             errorMessage.textContent = "An error occurred while sending the verification email.";
-          });
+          }
         } else {
           errorMessage.textContent = "Invalid email or password.";
         }
@@ -261,7 +260,6 @@
 
   <!-- Add the global script for CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-  <script src="../smtp.js"></script>
 
 </body>
 
