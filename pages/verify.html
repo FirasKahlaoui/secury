@@ -67,10 +67,13 @@
                 if (!querySnapshot.empty) {
                     const userDoc = querySnapshot.docs[0];
 
-                    // Clear the verification code after successful verification
+                    // Set isLoggedIn to true after successful verification
                     await updateDoc(doc(db, "users", userDoc.id), {
-                        verificationCode: "",
+                        isLoggedIn: true
                     });
+
+                    // Store isLoggedIn in localStorage
+                    localStorage.setItem('isLoggedIn', 'true');
 
                     alert("Verification successful! You can now access your account.");
                     window.location.href = "../pages/dashboard.html";
