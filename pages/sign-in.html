@@ -16,6 +16,7 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
   <style>
     .input-group-outline input:focus~.form-label,
     .input-group-outline input:not(:placeholder-shown)~.form-label {
@@ -177,15 +178,26 @@
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import firebaseConfig from "../config.js";
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Global variable to store user email
-    let userEmail = '';
+    let OUTLOOK_EMAIL = '';
+    let SMTPJS_SECURE_TOKEN = '';
+
+    // Fetch environment variables from the server
+    async function fetchEnvVariables() {
+      const response = await fetch('/env');
+      const env = await response.json();
+      OUTLOOK_EMAIL = env.OUTLOOK_EMAIL;
+      SMTPJS_SECURE_TOKEN = env.SMTPJS_SECURE_TOKEN;
+    }
+
+    // Call the function to fetch environment variables on page load
+    document.addEventListener('DOMContentLoaded', fetchEnvVariables);
 
     // Sign-In Function (attached to window)
     window.signIn = async function () {
@@ -212,27 +224,34 @@
 
         if (!usersSnapshot.empty) {
           // User found in 'users'
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userEmail', email); // Save user email in localStorage
-          userEmail = email; // Update global variable
-          window.location.href = "../pages/dashboard.html";
-          return;
+          const userDoc = usersSnapshot.docs[0];
+          const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
+
+          console.log('Generated Verification Code:', verificationCode); // Log the generated code for debugging
+
+          // Update user document with verification code
+          await updateDoc(doc(db, "users", userDoc.id), {
+            verificationCode,
+          });
+
+          // Send verification email
+          Email.send({
+            SecureToken: SMTPJS_SECURE_TOKEN,
+            To: email,
+            From: OUTLOOK_EMAIL,
+            Subject: "Your Verification Code",
+            Body: `Your verification code is ${verificationCode}`,
+          }).then(() => {
+            alert("Sign-in successful! Please check your email for the verification code.");
+            localStorage.setItem('userEmail', email); // Store email in localStorage for verification
+            window.location.href = "../pages/verify.html";
+          }).catch((error) => {
+            console.error("Error sending email:", error);
+            errorMessage.textContent = "An error occurred while sending the verification email.";
+          });
+        } else {
+          errorMessage.textContent = "Invalid email or password.";
         }
-
-        // Check 'waiting' collection for unverified user
-        const waitingQuery = query(
-          collection(db, "waiting"),
-          where("email", "==", email)
-        );
-        const waitingSnapshot = await getDocs(waitingQuery);
-
-        if (!waitingSnapshot.empty) {
-          errorMessage.textContent = "Your account is not yet verified.";
-          return;
-        }
-
-        // User not found in either collection
-        errorMessage.textContent = "Invalid email or password.";
       } catch (error) {
         console.error("Sign-In Error:", error);
         errorMessage.textContent = "An error occurred during sign-in.";
