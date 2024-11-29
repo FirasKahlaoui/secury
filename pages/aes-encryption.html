@@ -294,13 +294,33 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import firebaseConfig from "../config.js";
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Function to log user activity in Firestore
+        async function logUserActivity(action, details) {
+            const userId = localStorage.getItem('userId'); // Replace with actual user ID from your authentication system
+            const userEmail = localStorage.getItem('userEmail'); // Replace with actual user email
+
+            try {
+                await addDoc(collection(db, "userActivityLogs"), {
+                    userId: userId,
+                    email: userEmail,
+                    action: action,
+                    details: details,
+                    timestamp: serverTimestamp(),
+                });
+                console.log(`Activity logged successfully: ${action}`);
+            } catch (error) {
+                console.error("Error logging activity: ", error);
+            }
+        }
+
+        // Function to check user access and log the status
         async function checkAccess() {
             const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
             const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
@@ -316,6 +336,8 @@
                 aesContainer.classList.remove('hidden');
                 aesContainer.classList.add('blurred');
                 lockOverlay.style.display = 'flex';
+
+                logUserActivity("Access Denied", "User is not logged in or email is missing.");
                 return;
             }
 
@@ -330,48 +352,64 @@
                     if (userType !== 2) {
                         aesContainer.classList.remove('hidden', 'blurred');
                         lockOverlay.style.display = 'none';
+                        logUserActivity("Access Granted", `User with email ${userEmail} granted access.`);
                     } else {
                         aesContainer.classList.remove('hidden');
                         aesContainer.classList.add('blurred');
                         lockOverlay.style.display = 'flex';
+                        logUserActivity("Access Denied", `User with email ${userEmail} denied access due to user type.`);
                     }
                 } else {
                     aesContainer.classList.remove('hidden');
                     aesContainer.classList.add('blurred');
                     lockOverlay.style.display = 'flex';
+                    logUserActivity("Access Denied", `User with email ${userEmail} not found in database.`);
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
                 aesContainer.classList.remove('hidden');
                 aesContainer.classList.add('blurred');
                 lockOverlay.style.display = 'flex';
+
+                logUserActivity("Error", "Error fetching user data from Firestore.");
             }
         }
 
         // Trigger the checkAccess function on page load
         document.addEventListener('DOMContentLoaded', checkAccess);
 
-
         // Get the logged-in user's email from localStorage
         const userEmail = localStorage.getItem('userEmail');
 
-        // Function to fetch keys from the key vault
+        // Function to fetch keys from the key vault and log the action
         async function fetchKeys() {
             const keyVault = document.getElementById('keyVault');
             keyVault.innerHTML = '<option value="">Select your key</option>';
 
-            const keysQuery = query(collection(db, 'keyvault'), where('owner', '==', userEmail));
-            const querySnapshot = await getDocs(keysQuery);
+            try {
+                const keysQuery = query(collection(db, 'keyvault'), where('owner', '==', userEmail));
+                const querySnapshot = await getDocs(keysQuery);
 
-            querySnapshot.forEach((doc) => {
-                const secretData = doc.data();
-                const decryptedSecret = decryptSecret(secretData.secret);
+                if (querySnapshot.empty) {
+                    logUserActivity("Key Fetch", `No keys found for user with email ${userEmail}.`);
+                }
 
-                const option = document.createElement('option');
-                option.value = decryptedSecret;
-                option.textContent = secretData.secretName;
-                keyVault.appendChild(option);
-            });
+                querySnapshot.forEach((doc) => {
+                    const secretData = doc.data();
+                    const decryptedSecret = decryptSecret(secretData.secret);
+
+                    const option = document.createElement('option');
+                    option.value = decryptedSecret;
+                    option.textContent = secretData.secretName;
+                    keyVault.appendChild(option);
+                });
+
+                logUserActivity("Key Fetch", `Keys fetched for user with email ${userEmail}.`);
+
+            } catch (error) {
+                console.error("Error fetching keys:", error);
+                logUserActivity("Key Fetch Error", `Error fetching keys for user with email ${userEmail}.`);
+            }
         }
 
         // Function to decrypt the secret stored in Firebase
@@ -404,7 +442,7 @@
             return truncatedHash;
         }
 
-        // Function to encrypt data
+        // Function to encrypt data and log the action
         window.encryptData = function () {
             const keySize = parseInt(document.getElementById('keySize').value); // Ensure keySize is a number
             const key = document.getElementById('keyVault').value;
@@ -418,13 +456,16 @@
                 });
 
                 document.getElementById('cipherText').value = encrypted.toString();
+
+                logUserActivity("Encryption", `Encrypted text using key size ${keySize} and key ${key}`);
             } catch (error) {
                 console.error("Encryption error:", error);
                 alert("Encryption failed! Check your input.");
+                logUserActivity("Encryption Error", "Encryption failed.");
             }
         }
 
-        // Function to decrypt data
+        // Function to decrypt data and log the action
         window.decryptData = function () {
             const keySize = parseInt(document.getElementById('keySize').value); // Ensure keySize is a number
             const key = document.getElementById('keyVault').value;
@@ -444,29 +485,38 @@
                 }
 
                 document.getElementById('decryptedText').value = decryptedText;
+
+                logUserActivity("Decryption", `Decrypted text using key size ${keySize} and key ${key}`);
             } catch (error) {
                 console.error("Decryption error:", error);
                 alert("Decryption failed! Check your key and ciphertext.");
+                logUserActivity("Decryption Error", "Decryption failed.");
             }
         }
 
-        // Function to clear fields
+        // Function to clear fields and log the action
         window.clearFields = function () {
             document.getElementById('plainText').value = '';
             document.getElementById('cipherText').value = '';
             document.getElementById('decryptedText').value = '';
+
+            logUserActivity("Clear Fields", "Cleared the fields (plain text, cipher text, decrypted text).");
         }
 
-        // Function to copy text
+        // Function to copy text and log the action
         window.copyText = function (elementId) {
             const textArea = document.getElementById(elementId);
             textArea.select();
             document.execCommand('copy');
+
+            logUserActivity("Copy Text", `Copied text from ${elementId}`);
         }
 
         // Call fetchKeys on page load
         document.addEventListener('DOMContentLoaded', fetchKeys);
+
     </script>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </body>
