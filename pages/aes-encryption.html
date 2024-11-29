@@ -22,6 +22,44 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- CSS Files -->
     <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .blurred {
+            filter: blur(5px);
+            pointer-events: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            flex-direction: column;
+        }
+
+        .lock-icon {
+            font-size: 3rem;
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        .lock-text {
+            font-size: 1.2rem;
+            color: rgba(0, 0, 0, 0.8);
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -204,7 +242,7 @@
         </nav>
         <!-- End Navbar -->
 
-        <div class="container mt-4">
+        <div class="container mt-4 blurred hidden" id="aesContainer">
             <h3>AES Encryption</h3>
             <div class="form-group">
                 <label for="keySize">Select Key Size:</label>
@@ -238,6 +276,14 @@
                 <button class="btn btn-info mt-2" onclick="copyText('decryptedText')">Copy Decrypted Text</button>
             </div>
         </div>
+
+        <!-- Lock Overlay -->
+        <div class="lock-overlay" id="lockOverlay" style="display: none;">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-text">Don't have the right to use this function</div>
+        </div>
+
+
         <footer class="footer py-4">
             <div class="container-fluid">
                 <div class="row align-items-center justify-content-center">
@@ -313,6 +359,57 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        async function checkAccess() {
+            const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
+            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
+
+            const aesContainer = document.getElementById('aesContainer');
+            const lockOverlay = document.getElementById('lockOverlay');
+
+            // Initially hide everything
+            aesContainer.classList.add('hidden');
+            lockOverlay.style.display = 'none';
+
+            if (!isLoggedIn || !userEmail) {
+                aesContainer.classList.remove('hidden');
+                aesContainer.classList.add('blurred');
+                lockOverlay.style.display = 'flex';
+                return;
+            }
+
+            try {
+                const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
+                const querySnapshot = await getDocs(usersQuery);
+
+                if (!querySnapshot.empty) {
+                    const userData = querySnapshot.docs[0].data();
+                    const userType = userData.type;
+
+                    if (userType !== 2) {
+                        aesContainer.classList.remove('hidden', 'blurred');
+                        lockOverlay.style.display = 'none';
+                    } else {
+                        aesContainer.classList.remove('hidden');
+                        aesContainer.classList.add('blurred');
+                        lockOverlay.style.display = 'flex';
+                    }
+                } else {
+                    aesContainer.classList.remove('hidden');
+                    aesContainer.classList.add('blurred');
+                    lockOverlay.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                aesContainer.classList.remove('hidden');
+                aesContainer.classList.add('blurred');
+                lockOverlay.style.display = 'flex';
+            }
+        }
+
+        // Trigger the checkAccess function on page load
+        document.addEventListener('DOMContentLoaded', checkAccess);
+
 
         // Get the logged-in user's email from localStorage
         const userEmail = localStorage.getItem('userEmail');

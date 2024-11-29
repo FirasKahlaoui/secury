@@ -23,14 +23,16 @@
     <!-- CSS Files -->
     <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
     <style>
+        .hidden {
+            display: none;
+        }
+
         .blurred {
             filter: blur(5px);
             pointer-events: none;
             position: relative;
             z-index: 1;
-            /* Keeps blurred content below the lock overlay */
         }
-
 
         .lock-overlay {
             position: absolute;
@@ -42,30 +44,20 @@
             justify-content: center;
             align-items: center;
             background: rgba(255, 255, 255, 0.8);
-            /* Semi-transparent white background */
-            z-index: 2;
-            /* Ensure overlay is above blurred content */
+            z-index: 10;
             flex-direction: column;
-            /* Stack icon and text vertically */
         }
 
         .lock-icon {
             font-size: 3rem;
             color: rgba(0, 0, 0, 0.7);
-            /* Darker color for visibility */
-            z-index: 3;
-            /* Ensure it’s above the overlay background */
         }
 
         .lock-text {
             font-size: 1.2rem;
             color: rgba(0, 0, 0, 0.8);
-            /* Darker color for better readability */
             margin-top: 10px;
-            z-index: 3;
-            /* Ensure it’s above the overlay background */
             text-align: center;
-            /* Center-align the text */
         }
     </style>
 </head>
@@ -253,12 +245,12 @@
         <div class="container-fluid py-4 position-relative">
             <div class="row">
                 <div class="col-12">
-                    <!-- Card Content -->
-                    <div class="card">
+                    <!-- Content to blur -->
+                    <div class="card hidden" id="keyVaultSection">
                         <div class="card-header pb-0">
                             <h6>Key Vault</h6>
                         </div>
-                        <div class="card-body position-relative" id="keyVaultSection">
+                        <div class="card-body">
                             <div id="form-message" class="text-danger mb-3"></div>
                             <form id="keyVaultForm">
                                 <div class="mb-3">
@@ -276,15 +268,15 @@
                             <ul id="secretsList" class="list-group"></ul>
                         </div>
                     </div>
-
                     <!-- Lock Overlay -->
-                    <div class="lock-overlay" id="lockOverlay" style="display: none;">
+                    <div class="lock-overlay" id="lockOverlay">
                         <div class="lock-icon">🔒</div>
                         <div class="lock-text">Don't have the right to use this function</div>
                     </div>
                 </div>
             </div>
         </div>
+
 
         <footer class="footer py-4">
             <div class="container-fluid">
@@ -360,25 +352,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-
-
-        // Function to check login status and user type
         async function checkAccess() {
             const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
-            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
-
-            const keyVaultSection = document.getElementById('keyVaultSection');
+            const userEmail = localStorage.getItem('userEmail');
+            const aesContainer = document.getElementById('keyVaultSection');
             const lockOverlay = document.getElementById('lockOverlay');
 
-            // If the user is not logged in or no userEmail is present, apply blur and show the lock overlay
+            // Hide content and lock overlay initially
+            aesContainer.classList.add('hidden');
+            lockOverlay.style.display = 'none';
+
             if (!isLoggedIn || !userEmail) {
-                keyVaultSection.classList.add('blurred');
+                aesContainer.classList.remove('hidden');
+                aesContainer.classList.add('blurred');
                 lockOverlay.style.display = 'flex';
                 return;
             }
 
             try {
-                // Fetch user data from Firestore
                 const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
                 const querySnapshot = await getDocs(usersQuery);
 
@@ -386,36 +377,30 @@
                     const userData = querySnapshot.docs[0].data();
                     const userType = userData.type;
 
-
-
-                    // Check user type: Remove blur and overlay if user is authorized
-                    if (userType !== 2) { // Ensure comparison is correct
-                        keyVaultSection.classList.remove('blurred');
-                        keyVaultSection.style.filter = 'none'; // Explicitly reset the blur filter
+                    if (userType !== 2) {
+                        aesContainer.classList.remove('hidden', 'blurred');
                         lockOverlay.style.display = 'none';
-
                     } else {
-                        keyVaultSection.classList.add('blurred');
-                        keyVaultSection.style.filter = 'blur(5px)'; // Ensure blur is applied
+                        aesContainer.classList.remove('hidden');
+                        aesContainer.classList.add('blurred');
                         lockOverlay.style.display = 'flex';
-
                     }
                 } else {
-                    // If no user data is found, apply blur and show lock overlay
-                    keyVaultSection.classList.add('blurred');
-                    keyVaultSection.style.filter = 'blur(5px)';
+                    aesContainer.classList.remove('hidden');
+                    aesContainer.classList.add('blurred');
                     lockOverlay.style.display = 'flex';
-
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
-                // If an error occurs, apply blur and show lock overlay
-                keyVaultSection.classList.add('blurred');
-                keyVaultSection.style.filter = 'blur(5px)';
+                aesContainer.classList.remove('hidden');
+                aesContainer.classList.add('blurred');
                 lockOverlay.style.display = 'flex';
-
             }
         }
+
+        // Call the function on page load
+        document.addEventListener('DOMContentLoaded', checkAccess);
+
 
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkAccess);
