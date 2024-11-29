@@ -22,6 +22,31 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- CSS Files -->
     <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+    <style>
+        .custom-input {
+            background-color: #f0f0f5;
+            /* Light gray background */
+            border: 1px solid #ced4da;
+            /* Border to match the theme */
+            color: #333;
+            /* Dark text for readability */
+            padding: 8px 12px;
+            /* Comfortable padding */
+            border-radius: 5px;
+            /* Rounded corners */
+        }
+
+        .custom-input:focus {
+            background-color: #e6f7ff;
+            /* Slight blue tint on focus */
+            border-color: #80bdff;
+            /* Highlighted border color */
+            outline: none;
+            /* Remove default outline */
+            box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
+            /* Subtle glow */
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -214,11 +239,11 @@
                         <form id="cysar-form">
                             <div class="mb-3">
                                 <label for="inputText" class="form-label">Text to Encrypt</label>
-                                <input type="text" class="form-control" id="inputText" required>
+                                <input type="text" class="form-control custom-input" id="inputText" required>
                             </div>
                             <div class="mb-3">
                                 <label for="shift" class="form-label">Shift</label>
-                                <input type="number" class="form-control" id="shift" required>
+                                <input type="number" class="form-control custom-input" id="shift" required>
                             </div>
                             <button type="submit" class="btn btn-primary">Encrypt</button>
                         </form>
@@ -244,11 +269,11 @@
                     <form id="cysar-decrypt-form">
                         <div class="mb-3">
                             <label for="decryptText" class="form-label">Text to Decrypt</label>
-                            <input type="text" class="form-control" id="decryptText" required>
+                            <input type="text" class="form-control custom-input" id="decryptText" required>
                         </div>
                         <div class="mb-3">
                             <label for="decryptShift" class="form-label">Shift</label>
-                            <input type="number" class="form-control" id="decryptShift" required>
+                            <input type="number" class="form-control custom-input" id="decryptShift" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Decrypt</button>
                     </form>
