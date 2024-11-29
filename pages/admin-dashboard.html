@@ -199,6 +199,106 @@
             // Fetch users when the page loads
             fetchWaitingUsers();
         </script>
+
+        <div class="container mt-4">
+            <h2 class="mb-4">Users List</h2>
+            <div id="users-list" class="row"></div>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+            import {
+                getFirestore,
+                collection,
+                getDocs,
+                doc,
+                deleteDoc,
+                setDoc,
+                updateDoc,
+                getDoc
+            } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+            import { db } from "../firebase.js";
+
+            // Fetch users from Firestore
+            const fetchUsers = async () => {
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                const usersList = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                const usersListContainer = document.getElementById('users-list');
+                usersListContainer.innerHTML = ''; // Clear existing users
+
+                usersList.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.classList.add('col-md-4', 'mb-3');
+                    userDiv.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">${user.name}</h5>
+                        <p class="card-text">${user.email}</p>
+                        <div>
+                            <button class="btn btn-danger mt-2" onclick="deleteUser('${user.id}')">Delete</button>
+                            <button class="btn ${user.type === 1 ? 'btn-warning' : 'btn-info'} mt-2" 
+                                onclick="${user.type === 1 ? `demoteUser('${user.id}')` : `promoteUser('${user.id}')`}">
+                                ${user.type === 1 ? 'Demote' : 'Promote'}
+                            </button>
+                            <button class="btn btn-secondary mt-2" onclick="blockUser('${user.id}')">Block</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+                    usersListContainer.appendChild(userDiv);
+                });
+            };
+
+            // Delete user
+            window.deleteUser = async (userId) => {
+                await deleteDoc(doc(db, "users", userId));
+                console.log(`User ${userId} deleted.`);
+                fetchUsers(); // Refresh the users list
+            };
+
+            // Demote user (change type to 2)
+            window.demoteUser = async (userId) => {
+                await updateDoc(doc(db, "users", userId), { type: 2 });
+                console.log(`User ${userId} demoted.`);
+                fetchUsers(); // Refresh the users list
+            };
+
+            // Promote user (change type to 1)
+            window.promoteUser = async (userId) => {
+                await updateDoc(doc(db, "users", userId), { type: 1 });
+                console.log(`User ${userId} promoted.`);
+                fetchUsers(); // Refresh the users list
+            };
+
+            // Block user (move to waiting and remove from users)
+            window.blockUser = async (userId) => {
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+
+                    // Move user to the waiting collection
+                    await setDoc(doc(db, "waiting", userId), {
+                        name: userData.name,
+                        email: userData.email,
+                        password: userData.password,
+                        type: userData.type
+                    });
+
+                    // Remove user from the users collection
+                    await deleteDoc(userRef);
+
+                    console.log(`User ${userId} blocked.`);
+                    fetchUsers(); // Refresh the users list
+                    fetchWaitingUsers(); // Refresh the waiting list
+                }
+            };
+
+            // Fetch users on page load
+            fetchUsers();
+        </script>
+
     </main>
 
     <!-- Core JS Files -->
