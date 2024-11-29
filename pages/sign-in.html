@@ -194,126 +194,137 @@
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import firebaseConfig from "../config.js";
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Function to log events to Firestore
+    const logEvent = async (eventType, details) => {
+        try {
+            await addDoc(collection(db, "logs"), {
+                eventType,
+                details,
+                timestamp: serverTimestamp(),
+            });
+            console.log(`Log added: ${eventType}`, details);
+        } catch (error) {
+            console.error("Error logging event:", error);
+        }
+    };
+
     // Sign-In Function (attached to window)
     window.signIn = async function () {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const rememberMe = document.getElementById("rememberMe").checked;
-      const errorMessage = document.getElementById("error-message");
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const rememberMe = document.getElementById("rememberMe").checked;
+        const errorMessage = document.getElementById("error-message");
 
-      if (!email || !password) {
-        errorMessage.textContent = "Please fill out both email and password.";
-        return;
-      }
-
-      // Hash the password using CryptoJS (global object)
-      const hashedPassword = CryptoJS.SHA256(password).toString();
-
-      try {
-        // Check 'users' collection for matching email and password
-        const usersQuery = query(
-          collection(db, "users"),
-          where("email", "==", email),
-          where("password", "==", hashedPassword)
-        );
-        const usersSnapshot = await getDocs(usersQuery);
-
-        if (!usersSnapshot.empty) {
-          // User found in 'users'
-          const userDoc = usersSnapshot.docs[0];
-          const userData = userDoc.data();
-
-          if (rememberMe && userData.rememberMe) {
-            // Remember me is checked and user has rememberMe set to true in Firestore
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userEmail', email);
-            window.location.href = "../pages/dashboard.html";
-          } else if (rememberMe && !userData.rememberMe) {
-            // Remember me is checked and user has rememberMe set to false in Firestore
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
-
-            console.log('Generated Verification Code:', verificationCode); // Log the generated code for debugging
-
-            // Update user document with verification code and rememberMe set to true
-            await updateDoc(doc(db, "users", userDoc.id), {
-              verificationCode,
-              rememberMe: true
-            });
-
-            // Send verification email using EmailJS
-            emailjs.send("service_scwjxdl", "template_36yw543", {
-              to_email: email, // This should be the user's email address
-              verification_code: verificationCode
-            }).then(function (response) {
-              // Show loading bar
-              document.getElementById("loading-bar").style.display = "block";
-
-              // Store user email in localStorage
-              localStorage.setItem('userEmail', email);
-
-              // Redirect to verify page after 3 seconds
-              setTimeout(() => {
-                window.location.href = "../pages/verify.html";
-              }, 3000);
-            }, function (error) {
-              console.error("Error sending email:", error);
-              errorMessage.textContent = "An error occurred while sending the verification email.";
-            });
-          } else if (!rememberMe && userData.rememberMe) {
-            // Remember me is not checked and user has rememberMe set to true in Firestore
-            await updateDoc(doc(db, "users", userDoc.id), {
-              rememberMe: false
-            });
-
-            localStorage.setItem('isLoggedIn', 'true');
-            window.location.href = "../pages/dashboard.html";
-          } else {
-            // Remember me is not checked and user has rememberMe set to false in Firestore
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
-
-            console.log('Generated Verification Code:', verificationCode); // Log the generated code for debugging
-
-            // Update user document with verification code
-            await updateDoc(doc(db, "users", userDoc.id), {
-              verificationCode
-            });
-
-            // Send verification email using EmailJS
-            emailjs.send("service_scwjxdl", "template_36yw543", {
-              to_email: email, // This should be the user's email address
-              verification_code: verificationCode
-            }).then(function (response) {
-              // Show loading bar
-              document.getElementById("loading-bar").style.display = "block";
-
-              // Store user email in localStorage
-              localStorage.setItem('userEmail', email);
-
-              // Redirect to verify page after 3 seconds
-              setTimeout(() => {
-                window.location.href = "../pages/verify.html";
-              }, 3000);
-            }, function (error) {
-              console.error("Error sending email:", error);
-              errorMessage.textContent = "An error occurred while sending the verification email.";
-            });
-          }
-        } else {
-          errorMessage.textContent = "Invalid email or password.";
+        if (!email || !password) {
+            errorMessage.textContent = "Please fill out both email and password.";
+            await logEvent("Failed Login", { email, reason: "Missing email or password" });
+            return;
         }
-      } catch (error) {
-        console.error("Sign-In Error:", error);
-        errorMessage.textContent = "An error occurred during sign-in.";
-      }
+
+        // Hash the password using CryptoJS (global object)
+        const hashedPassword = CryptoJS.SHA256(password).toString();
+
+        try {
+            // Check 'users' collection for matching email and password
+            const usersQuery = query(
+                collection(db, "users"),
+                where("email", "==", email),
+                where("password", "==", hashedPassword)
+            );
+            const usersSnapshot = await getDocs(usersQuery);
+
+            if (!usersSnapshot.empty) {
+                // User found in 'users'
+                const userDoc = usersSnapshot.docs[0];
+                const userData = userDoc.data();
+
+                // Log successful sign-in
+                await logEvent("User Sign-In", { email, status: "Success" });
+
+                if (rememberMe && userData.rememberMe) {
+                    // Remember me is checked and user has rememberMe set to true in Firestore
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    window.location.href = "../pages/dashboard.html";
+                } else if (rememberMe && !userData.rememberMe) {
+                    // Handle verification code if rememberMe is checked but userData.rememberMe is false
+                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
+
+                    // Update user document with verification code and rememberMe set to true
+                    await updateDoc(doc(db, "users", userDoc.id), {
+                        verificationCode,
+                        rememberMe: true
+                    });
+
+                    // Send verification email using EmailJS
+                    emailjs.send("service_scwjxdl", "template_36yw543", {
+                        to_email: email, // This should be the user's email address
+                        verification_code: verificationCode
+                    }).then(function (response) {
+                        // Show loading bar
+                        document.getElementById("loading-bar").style.display = "block";
+
+                        // Store user email in localStorage
+                        localStorage.setItem('userEmail', email);
+
+                        // Redirect to verify page after 3 seconds
+                        setTimeout(() => {
+                            window.location.href = "../pages/verify.html";
+                        }, 3000);
+                    }, function (error) {
+                        console.error("Error sending email:", error);
+                        errorMessage.textContent = "An error occurred while sending the verification email.";
+                    });
+                } else {
+                    // Handle case when rememberMe is not checked
+                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
+
+                    // Update user document with verification code
+                    await updateDoc(doc(db, "users", userDoc.id), {
+                        verificationCode
+                    });
+
+                    // Send verification email using EmailJS
+                    emailjs.send("service_scwjxdl", "template_36yw543", {
+                        to_email: email, // This should be the user's email address
+                        verification_code: verificationCode
+                    }).then(function (response) {
+                        // Show loading bar
+                        document.getElementById("loading-bar").style.display = "block";
+
+                        // Store user email in localStorage
+                        localStorage.setItem('userEmail', email);
+
+                        // Redirect to verify page after 3 seconds
+                        setTimeout(() => {
+                            window.location.href = "../pages/verify.html";
+                        }, 3000);
+                    }, function (error) {
+                        console.error("Error sending email:", error);
+                        errorMessage.textContent = "An error occurred while sending the verification email.";
+                    });
+                }
+            } else {
+                errorMessage.textContent = "Invalid email or password.";
+                // Log failed login attempt
+                await logEvent("Failed Login", { email, reason: "Invalid credentials" });
+            }
+        } catch (error) {
+            console.error("Sign-In Error:", error);
+            errorMessage.textContent = "An error occurred during sign-in.";
+            // Log the error in Firestore
+            await logEvent("Sign-In Error", { email, reason: error.message });
+        }
     };
-  </script>
+</script>
+
   <!-- Add the global script for CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
   <!-- Add the EmailJS SDK -->
