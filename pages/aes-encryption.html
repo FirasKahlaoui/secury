@@ -303,12 +303,10 @@
 
         // Function to log user activity in Firestore
         async function logUserActivity(action, details) {
-            const userId = localStorage.getItem('userId'); // Replace with actual user ID from your authentication system
             const userEmail = localStorage.getItem('userEmail'); // Replace with actual user email
 
             try {
                 await addDoc(collection(db, "userActivityLogs"), {
-                    userId: userId,
                     email: userEmail,
                     action: action,
                     details: details,

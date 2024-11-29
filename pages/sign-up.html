@@ -202,7 +202,7 @@
 
     async function logEvent(eventType, details) {
       try {
-        await addDoc(collection(db, "logs"), {
+        await addDoc(collection(db, "userActivityLogs"), {
           eventType,
           details,
           timestamp: serverTimestamp(),

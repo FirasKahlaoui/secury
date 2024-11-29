@@ -204,7 +204,7 @@
     // Function to log events to Firestore
     const logEvent = async (eventType, details) => {
       try {
-        await addDoc(collection(db, "logs"), {
+        await addDoc(collection(db, "userActivityLogs"), {
           eventType,
           details,
           timestamp: serverTimestamp(),
