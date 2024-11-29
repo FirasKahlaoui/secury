@@ -1,6 +1,6 @@
 # Secury Dashboard
 
-Secury Dashboard is a material design admin dashboard template built with HTML, CSS, and JavaScript. It provides a clean and modern interface for managing and monitoring various aspects of your application.
+Secury is a robust encryption and security application designed to ensure data privacy and access management. It features data encryption (Caesar Cipher, AES) and implements advanced Identity and Access Management (IAM) techniques, including Role-Based Access Control (RBAC) and Access Control Lists (ACL), making it an ideal solution for secure environments.
 
 ## Features
 
