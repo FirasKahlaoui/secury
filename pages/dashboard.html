@@ -21,6 +21,61 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <!-- Adding Custom Styling -->
+  <style>
+    .card-body {
+
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .list-group-item {
+      border: 1px solid #D1AC00;
+      margin-bottom: 1rem;
+
+      color: #0C1618;
+      font-size: 1rem;
+      border-radius: 8px;
+    }
+
+    .list-group-item .badge {
+      font-size: 0.9rem;
+      padding: 0.5rem;
+      font-weight: bold;
+    }
+
+    .list-group-item .badge.bg-info {
+      background-color: #004643;
+    }
+
+    .list-group-item .badge.bg-primary {
+      background-color: #0C1618;
+    }
+
+    .list-group-item .badge.bg-warning {
+      background-color: #D1AC00;
+    }
+
+    .list-group-item .badge.bg-danger {
+      background-color: #F6BE9A;
+    }
+
+    .list-group-item .badge.bg-secondary {
+      background-color: #495057;
+    }
+
+    .list-group-item .badge.bg-dark {
+      background-color: #212529;
+    }
+
+    .list-group-item .badge.bg-success {
+      background-color: #28a745;
+    }
+
+    .font-weight-bold {
+      font-weight: 700;
+    }
+  </style>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -121,39 +176,100 @@
     <div class="container-fluid py-4">
       <div class="row">
         <div class="col-12">
-          <div class="card">
-            <div class="card-header pb-0">
+          <div class="card shadow-lg border-radius-lg">
+            <div class="card-header pb-0 bg-gradient-dark text-white text-center">
               <h6>Welcome to Secury</h6>
+              <p class="text-muted">Your one-stop solution for advanced data security and real-time monitoring.</p>
             </div>
             <div class="card-body">
               <p class="text-muted">
-                <strong>Developed by:</strong> <a href="https://github.com/FirasKahlaoui" target="_blank">Firas
-                  Kahlaoui</a>
+                <strong>Developed by:</strong> <a href="https://github.com/FirasKahlaoui" target="_blank"
+                  class="text-warning font-weight-bold">Firas Kahlaoui</a>
               </p>
-              <p class="text-muted">
+              <p class="text-muted mb-4">
                 <strong>Secury</strong> is a cutting-edge security platform designed to protect and manage your
                 sensitive data with ease. Built using modern technologies, it provides top-notch security features to
                 ensure the safety of your system. With a user-friendly interface and advanced encryption methods, Secury
                 is the ideal solution for both personal and business use.
               </p>
-              <h5 class="mt-3">Key Features:</h5>
-              <ul>
-                <li><strong>Data Encryption:</strong> Secure your data with AES and Caesar Cipher encryption algorithms.
+              <h5 class="mt-3 text-primary">Key Features:</h5>
+              <ul class="list-group">
+                <li class="list-group-item bg-light">
+                  <strong>Data Encryption</strong>: Secure your data with AES and Caesar Cipher encryption algorithms.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-success rounded-pill me-2">Encrypted</span>
+                  </div>
                 </li>
-                <li><strong>User Authentication:</strong> Multi-layered user authentication and role-based access
-                  control.</li>
-                <li><strong>Cloud Integration:</strong> Seamlessly integrates with Firebase for secure storage and
-                  authentication.</li>
-                <li><strong>Advanced Security:</strong> Real-time monitoring and advanced security features to safeguard
-                  your data.</li>
-                <li><strong>Easy-to-Use Interface:</strong> A modern and intuitive UI that allows you to manage your
-                  security settings effortlessly.</li>
+                <li class="list-group-item bg-light">
+                  <strong>User Authentication</strong>: Multi-layered user authentication and role-based access control
+                  (RBAC).
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-info rounded-pill me-2">Protected</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>2-Factor Authentication (2FA)</strong>: Adds an additional layer of security to your login
+                  process by requiring a second factor (such as an email verification code).
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-warning text-dark rounded-pill me-2">Verified</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>AI-Driven Security Monitoring (AIM)</strong>: Intelligent algorithms analyze potential threats
+                  in real-time, preventing unauthorized access and identifying vulnerabilities.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-primary rounded-pill me-2">AI-Powered</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>Security Information and Event Management (SIEM)</strong>: Monitors and aggregates log data
+                  for real-time threat detection and analysis, helping mitigate risks.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-danger rounded-pill me-2">Active Monitoring</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>reCAPTCHA Integration</strong>: Protect your login page from bots with Google's reCAPTCHA to
+                  ensure only legitimate users can access the system.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-secondary text-white rounded-pill me-2">Bot-Protection</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>Logs Analytics</strong>: Track and analyze security logs for a comprehensive view of system
+                  activities, helping administrators detect suspicious behavior.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-dark text-white rounded-pill me-2">Comprehensive</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>Cloud Integration</strong>: Seamlessly integrates with Firebase for secure storage and
+                  authentication.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-info text-dark rounded-pill me-2">Cloud-Based</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>Advanced Security</strong>: Real-time monitoring and advanced security features to safeguard
+                  your data.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-success text-white rounded-pill me-2">Secure</span>
+                  </div>
+                </li>
+                <li class="list-group-item bg-light">
+                  <strong>Easy-to-Use Interface</strong>: A modern and intuitive UI that allows you to manage your
+                  security settings effortlessly.
+                  <div class="d-flex justify-content-start mt-2">
+                    <span class="badge bg-primary text-white rounded-pill me-2">User-Friendly</span>
+                  </div>
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </div>
     </div>
+
 
     <footer class="footer py-4">
       <div class="container-fluid">
