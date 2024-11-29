@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email</title>
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+    <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
+    <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
+    <style>
+        .input-group-outline input:focus~.form-label,
+        .input-group-outline input:not(:placeholder-shown)~.form-label {
+            top: -1.25rem;
+            left: 0;
+            font-size: 0.75rem;
+            color: #495057;
+        }
+
+        .input-group-outline .form-label {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .input-group-outline input {
+            padding-top: 1.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: loading 3s linear;
+        }
+
+        @keyframes loading {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.verifyCode = async function verifyCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const code = urlParams.get('code');
+            const enteredCode = document.getElementById("code").value;
+            const errorMessage = document.getElementById("error-message");
+
+            if (enteredCode === code) {
+                try {
+                    const adminQuery = query(collection(db, "admins"), where("email", "==", email));
+                    const querySnapshot = await getDocs(adminQuery);
+
+                    if (!querySnapshot.empty) {
+                        const adminDoc = querySnapshot.docs[0];
+
+                        // Set isLoggedIn to true after successful verification
+                        await updateDoc(doc(db, "admins", adminDoc.id), {
+                            isLoggedIn: true
+                        });
+
+                        // Show loading bar
+                        document.getElementById("loading-bar").style.display = "block";
+
+                        // Redirect to admin dashboard after 3 seconds
+                        setTimeout(() => {
+                            window.location.href = "../pages/admin-dashboard.html";
+                        }, 3000);
+                    } else {
+                        errorMessage.textContent = "Admin not found.";
+                    }
+                } catch (error) {
+                    console.error("Error verifying code:", error);
+                    errorMessage.textContent = "An error occurred during verification.";
+                }
+            } else {
+                errorMessage.textContent = "Invalid verification code.";
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-gray-200">
+    <div class="container position-sticky z-index-sticky top-0">
+        <div class="row">
+            <div class="col-12">
+                <nav
+                    class="navbar navbar-expand-lg blur border-radius-xl top-0 z-index-3 shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
+                    <div class="container-fluid ps-2 pe-0">
+                        <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3"
+                            href="../pages/dashboard.html">Secury</a>
+                        <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon mt-2">
+                                <span class="navbar-toggler-bar bar1"></span>
+                                <span class="navbar-toggler-bar bar2"></span>
+                                <span class="navbar-toggler-bar bar3"></span>
+                            </span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navigation">
+                            <ul class="navbar-nav ms-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link me-2" href="../pages/admin-sign-in.html">
+                                        <i class="fas fa-key opacity-6 text-dark me-1"></i> Sign In
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <main class="main-content mt-0">
+        <div class="page-header align-items-start min-vh-100"
+            style="background-image: url('https://images.unsplash.com/photo-1497294815431-9365093b7331?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80');">
+            <span class="mask bg-gradient-dark opacity-6"></span>
+            <div class="container my-auto">
+                <div class="row">
+                    <div class="col-lg-4 col-md-8 col-12 mx-auto">
+                        <div class="card z-index-0 fadeIn3 fadeInBottom">
+                            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                                <div class="bg-gradient-dark shadow-dark border-radius-lg py-3 pe-1">
+                                    <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Verify Email</h4>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <form role="form" class="text-start" onsubmit="event.preventDefault(); verifyCode();">
+                                    <div class="input-group input-group-outline my-3">
+                                        <input type="text" class="form-control" id="code" placeholder=" ">
+                                        <label class="form-label">Verification Code</label>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit"
+                                            class="btn bg-gradient-dark w-100 my-4 mb-2">Verify</button>
+                                    </div>
+                                    <p id="error-message" class="error-message"></p>
+                                    <div id="loading-bar" class="loading-bar" style="display: none;"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer position-absolute bottom-2 py-2 w-100">
+                <div class="container">
+                    <div class="row align-items-center justify-content-lg-between">
+                        <div class="col-12 col-md-6 my-auto">
+                            <div class="copyright text-center text-sm text-white text-lg-start">
+                                ©
+                                <script>
+                                    document.write(new Date().getFullYear())
+                                </script>,
+                                made with <i class="fa fa-heart" aria-hidden="true"></i> by
+                                <a href="https://github.com/FirasKahlaoui" class="font-weight-bold text-white"
+                                    target="_blank">Firas
+                                    Kahlaoui</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+</body>
+
+</html>
