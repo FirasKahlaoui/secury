@@ -19,6 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script src="https://smtpjs.com/v3/smtp.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script> <!-- reCAPTCHA script -->
+
     <style>
         .input-group-outline input:focus~.form-label,
         .input-group-outline input:not(:placeholder-shown)~.form-label {
@@ -112,7 +113,9 @@
                                     </div>
                                     <div class="text-center">
                                         <button type="button" class="btn bg-gradient-dark w-100 my-4 mb-2"
-                                            onclick="signIn()">Sign In</button>
+                                            id="signInBtn">
+                                            Sign In
+                                        </button>
                                     </div>
                                     <p id="error-message" class="error-message"></p>
                                     <div id="loading-bar" class="loading-bar" style="display: none;"></div>
@@ -140,6 +143,7 @@
         </div>
     </main>
 
+    <!-- Your Script Section -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -149,6 +153,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Define signIn function
         async function signIn() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
@@ -191,11 +196,22 @@
                 document.getElementById("loading-bar").style.display = 'none';
             }
         }
+
+        // Adding event listener for Sign In button
+        document.getElementById('signInBtn').addEventListener('click', signIn);
     </script>
 
     <!-- Firebase App -->
     <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
+    <!-- Add the EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("EsxFOFbF-26aaL3gh");
+        })();
+    </script>
+
 </body>
 
 </html>
