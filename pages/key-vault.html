@@ -358,6 +358,9 @@
             const aesContainer = document.getElementById('keyVaultSection');
             const lockOverlay = document.getElementById('lockOverlay');
 
+            console.log('User email:', userEmail);
+            console.log('Is logged in:', isLoggedIn);
+
             // Hide content and lock overlay initially
             aesContainer.classList.add('hidden');
             lockOverlay.style.display = 'none';
@@ -397,10 +400,6 @@
                 lockOverlay.style.display = 'flex';
             }
         }
-
-        // Call the function on page load
-        document.addEventListener('DOMContentLoaded', checkAccess);
-
 
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkAccess);

@@ -238,6 +238,7 @@
           if (rememberMe && userData.rememberMe) {
             // Remember me is checked and user has rememberMe set to true in Firestore
             localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userEmail', email);
             window.location.href = "../pages/dashboard.html";
           } else if (rememberMe && !userData.rememberMe) {
             // Remember me is checked and user has rememberMe set to false in Firestore
