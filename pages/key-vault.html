@@ -59,6 +59,30 @@
             margin-top: 10px;
             text-align: center;
         }
+
+        .custom-input {
+            background-color: #f0f0f5;
+            /* Light gray background */
+            border: 1px solid #ced4da;
+            /* Border to match the theme */
+            color: #333;
+            /* Dark text for readability */
+            padding: 8px 12px;
+            /* Comfortable padding */
+            border-radius: 5px;
+            /* Rounded corners */
+        }
+
+        .custom-input:focus {
+            background-color: #e6f7ff;
+            /* Slight blue tint on focus */
+            border-color: #80bdff;
+            /* Highlighted border color */
+            outline: none;
+            /* Remove default outline */
+            box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
+            /* Subtle glow */
+        }
     </style>
 </head>
 
@@ -255,11 +279,11 @@
                             <form id="keyVaultForm">
                                 <div class="mb-3">
                                     <label for="secretName" class="form-label">Secret Name</label>
-                                    <input type="text" class="form-control" id="secretName" required>
+                                    <input type="text" class="form-control custom-input" id="secretName" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="secretValue" class="form-label">Secret Value</label>
-                                    <input type="text" class="form-control" id="secretValue" required>
+                                    <input type="text" class="form-control custom-input" id="secretValue" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Create Secret</button>
                             </form>
