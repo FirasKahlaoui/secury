@@ -203,127 +203,140 @@
 
     // Function to log events to Firestore
     const logEvent = async (eventType, details) => {
-        try {
-            await addDoc(collection(db, "logs"), {
-                eventType,
-                details,
-                timestamp: serverTimestamp(),
-            });
-            console.log(`Log added: ${eventType}`, details);
-        } catch (error) {
-            console.error("Error logging event:", error);
-        }
+      try {
+        await addDoc(collection(db, "logs"), {
+          eventType,
+          details,
+          timestamp: serverTimestamp(),
+        });
+        console.log(`Log added: ${eventType}`, details);
+      } catch (error) {
+        console.error("Error logging event:", error);
+      }
     };
 
     // Sign-In Function (attached to window)
     window.signIn = async function () {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const rememberMe = document.getElementById("rememberMe").checked;
-        const errorMessage = document.getElementById("error-message");
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const rememberMe = document.getElementById("rememberMe").checked;
+      const errorMessage = document.getElementById("error-message");
 
-        if (!email || !password) {
-            errorMessage.textContent = "Please fill out both email and password.";
-            await logEvent("Failed Login", { email, reason: "Missing email or password" });
+      if (!email || !password) {
+        errorMessage.textContent = "Please fill out both email and password.";
+        await logEvent("Failed Login", { email, reason: "Missing email or password" });
+        return;
+      }
+
+      // Hash the password using CryptoJS (global object)
+      const hashedPassword = CryptoJS.SHA256(password).toString();
+
+      try {
+        // Check 'users' collection for matching email
+        const usersQuery = query(
+          collection(db, "users"),
+          where("email", "==", email)
+        );
+        const usersSnapshot = await getDocs(usersQuery);
+
+        if (!usersSnapshot.empty) {
+          const userDoc = usersSnapshot.docs[0];
+          const userData = userDoc.data();
+
+          // Check if account is locked
+          const currentTime = new Date().getTime();
+          if (userData.lockoutTime && currentTime < userData.lockoutTime.seconds * 1000) {
+            errorMessage.textContent = "Your account is locked. Please try again later.";
+            await logEvent("Failed Login", { email, reason: "Account locked" });
             return;
-        }
+          }
 
-        // Hash the password using CryptoJS (global object)
-        const hashedPassword = CryptoJS.SHA256(password).toString();
+          // Hash the password and check if it matches
+          if (hashedPassword === userData.password) {
+            // Reset failed attempts after successful login
+            await updateDoc(doc(db, "users", userDoc.id), {
+              failedAttempts: 0,
+              lockoutTime: null,
+            });
 
-        try {
-            // Check 'users' collection for matching email and password
-            const usersQuery = query(
-                collection(db, "users"),
-                where("email", "==", email),
-                where("password", "==", hashedPassword)
-            );
-            const usersSnapshot = await getDocs(usersQuery);
+            // Log successful sign-in
+            await logEvent("User Sign-In", { email, status: "Success" });
 
-            if (!usersSnapshot.empty) {
-                // User found in 'users'
-                const userDoc = usersSnapshot.docs[0];
-                const userData = userDoc.data();
-
-                // Log successful sign-in
-                await logEvent("User Sign-In", { email, status: "Success" });
-
-                if (rememberMe && userData.rememberMe) {
-                    // Remember me is checked and user has rememberMe set to true in Firestore
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('userEmail', email);
-                    window.location.href = "../pages/dashboard.html";
-                } else if (rememberMe && !userData.rememberMe) {
-                    // Handle verification code if rememberMe is checked but userData.rememberMe is false
-                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
-
-                    // Update user document with verification code and rememberMe set to true
-                    await updateDoc(doc(db, "users", userDoc.id), {
-                        verificationCode,
-                        rememberMe: true
-                    });
-
-                    // Send verification email using EmailJS
-                    emailjs.send("service_scwjxdl", "template_36yw543", {
-                        to_email: email, // This should be the user's email address
-                        verification_code: verificationCode
-                    }).then(function (response) {
-                        // Show loading bar
-                        document.getElementById("loading-bar").style.display = "block";
-
-                        // Store user email in localStorage
-                        localStorage.setItem('userEmail', email);
-
-                        // Redirect to verify page after 3 seconds
-                        setTimeout(() => {
-                            window.location.href = "../pages/verify.html";
-                        }, 3000);
-                    }, function (error) {
-                        console.error("Error sending email:", error);
-                        errorMessage.textContent = "An error occurred while sending the verification email.";
-                    });
-                } else {
-                    // Handle case when rememberMe is not checked
-                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit code
-
-                    // Update user document with verification code
-                    await updateDoc(doc(db, "users", userDoc.id), {
-                        verificationCode
-                    });
-
-                    // Send verification email using EmailJS
-                    emailjs.send("service_scwjxdl", "template_36yw543", {
-                        to_email: email, // This should be the user's email address
-                        verification_code: verificationCode
-                    }).then(function (response) {
-                        // Show loading bar
-                        document.getElementById("loading-bar").style.display = "block";
-
-                        // Store user email in localStorage
-                        localStorage.setItem('userEmail', email);
-
-                        // Redirect to verify page after 3 seconds
-                        setTimeout(() => {
-                            window.location.href = "../pages/verify.html";
-                        }, 3000);
-                    }, function (error) {
-                        console.error("Error sending email:", error);
-                        errorMessage.textContent = "An error occurred while sending the verification email.";
-                    });
-                }
+            // Proceed with the rest of your login flow
+            if (rememberMe && userData.rememberMe) {
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('userEmail', email);
+              window.location.href = "../pages/dashboard.html";
+            } else if (rememberMe && !userData.rememberMe) {
+              const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+              await updateDoc(doc(db, "users", userDoc.id), {
+                verificationCode,
+                rememberMe: true
+              });
+              emailjs.send("service_scwjxdl", "template_36yw543", {
+                to_email: email,
+                verification_code: verificationCode
+              }).then(function () {
+                setTimeout(() => {
+                  window.location.href = "../pages/verify.html";
+                }, 3000);
+              }).catch(error => {
+                console.error("Error sending email:", error);
+                errorMessage.textContent = "An error occurred while sending the verification email.";
+              });
             } else {
-                errorMessage.textContent = "Invalid email or password.";
-                // Log failed login attempt
-                await logEvent("Failed Login", { email, reason: "Invalid credentials" });
+              const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+              await updateDoc(doc(db, "users", userDoc.id), {
+                verificationCode
+              });
+              emailjs.send("service_scwjxdl", "template_36yw543", {
+                to_email: email,
+                verification_code: verificationCode
+              }).then(function () {
+                setTimeout(() => {
+                  window.location.href = "../pages/verify.html";
+                }, 3000);
+              }).catch(error => {
+                console.error("Error sending email:", error);
+                errorMessage.textContent = "An error occurred while sending the verification email.";
+              });
             }
-        } catch (error) {
-            console.error("Sign-In Error:", error);
-            errorMessage.textContent = "An error occurred during sign-in.";
-            // Log the error in Firestore
-            await logEvent("Sign-In Error", { email, reason: error.message });
+          } else {
+            // Increment failed attempts
+            let failedAttempts = userData.failedAttempts || 0;
+            failedAttempts++;
+
+            // Lock the account if failed attempts exceed the limit (e.g., 3)
+            if (failedAttempts >= 3) {
+              const lockoutDuration = 30 * 60 * 1000; // 30 minutes lockout duration
+              const lockoutTime = currentTime + lockoutDuration;
+
+              // Update failedAttempts and lockoutTime in Firestore
+              await updateDoc(doc(db, "users", userDoc.id), {
+                failedAttempts,
+                lockoutTime: new Date(lockoutTime)
+              });
+
+              errorMessage.textContent = "Your account has been locked due to too many failed attempts. Please try again later.";
+              await logEvent("Failed Login - Account Locked", { email, failedAttempts });
+            } else {
+              // Update failedAttempts in Firestore
+              await updateDoc(doc(db, "users", userDoc.id), { failedAttempts });
+              errorMessage.textContent = "Invalid email or password.";
+              await logEvent("Failed Login", { email, reason: "Incorrect password" });
+            }
+          }
+        } else {
+          errorMessage.textContent = "Invalid email or password.";
+          await logEvent("Failed Login", { email, reason: "User not found" });
         }
+      } catch (error) {
+        console.error("Sign-In Error:", error);
+        errorMessage.textContent = "An error occurred during sign-in.";
+        await logEvent("Sign-In Error", { email, reason: error.message });
+      }
     };
-</script>
+  </script>
 
   <!-- Add the global script for CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
