@@ -97,6 +97,7 @@
                       <p id="uppercase" class="text-danger">Must contain an uppercase letter</p>
                       <p id="symbol" class="text-danger">Must contain a symbol</p>
                     </div>
+                    <div id="notification" class="mb-3"></div>
                     <div class="form-check form-check-info text-start ps-0">
                       <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
                       <label class="form-check-label" for="flexCheckDefault">
@@ -130,7 +131,15 @@
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import firebaseConfig from "../config.js";
 
     const app = initializeApp(firebaseConfig);
@@ -141,6 +150,7 @@
     const length = document.getElementById("length");
     const uppercase = document.getElementById("uppercase");
     const symbol = document.getElementById("symbol");
+    const notification = document.getElementById("notification");
 
     password.addEventListener("input", validatePassword);
     confirmPassword.addEventListener("input", validatePassword);
@@ -186,11 +196,21 @@
       }
     }
 
+    function showNotification(message, isSuccess) {
+      notification.innerHTML = `<div class="alert ${isSuccess ? 'alert-success' : 'alert-danger'}" role="alert">${message}</div>`;
+    }
+
     window.validateForm = async function validateForm() {
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const passwordValue = password.value;
       const type = 1;
+      const termsAccepted = document.getElementById("flexCheckDefault").checked;
+
+      if (!termsAccepted) {
+        showNotification("You must agree to the Terms and Conditions.", false);
+        return;
+      }
 
       if (
         passwordValue.length >= 6 &&
@@ -198,6 +218,16 @@
         /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) &&
         passwordValue === confirmPassword.value
       ) {
+        // Check if email already exists in the users collection
+        const usersRef = collection(db, "users");
+        const emailQuery = query(usersRef, where("email", "==", email));
+        const querySnapshot = await getDocs(emailQuery);
+
+        if (!querySnapshot.empty) {
+          showNotification("This email is already registered.", false);
+          return;
+        }
+
         const hashedPassword = CryptoJS.SHA256(passwordValue).toString();
         try {
           await addDoc(collection(db, "waiting"), {
@@ -207,17 +237,20 @@
             timestamp: serverTimestamp(),
             type,
           });
-          alert("Registration successful!");
-          window.location.href = "../pages/sign-in.html";
+          showNotification("Registration successful! Redirecting to sign-in page...", true);
+          setTimeout(() => {
+            window.location.href = "../pages/sign-in.html";
+          }, 2000);
         } catch (error) {
           console.error("Error:", error);
-          alert("An error occurred.");
+          showNotification("An error occurred. Please try again.", false);
         }
       } else {
-        alert("Check your password or confirm the inputs!");
+        showNotification("Check your password or confirm the inputs!", false);
       }
     };
   </script>
+
 </body>
 
 </html>
