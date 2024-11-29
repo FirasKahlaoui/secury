@@ -8,13 +8,49 @@
 </head>
 
 <body>
-    <script>
-        // Clear the login status
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userEmail');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
 
-        // Redirect to the sign-in page
-        window.location.href = '../pages/sign-in.html';
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to log user activity in Firestore
+        async function logUserActivity(action, details) {
+            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
+
+            try {
+                await addDoc(collection(db, "userActivityLogs"), {
+                    email: userEmail,
+                    action: action,
+                    details: details,
+                    timestamp: serverTimestamp(),
+                });
+                console.log(`Activity logged successfully: ${action}`);
+            } catch (error) {
+                console.error("Error logging activity: ", error);
+            }
+        }
+
+        // Log the user out
+        async function logOut() {
+            const userEmail = localStorage.getItem('userEmail');
+
+            // Log the logout activity to Firestore
+            await logUserActivity("Logout", `User with email ${userEmail} has logged out.`);
+
+            // Clear the login status
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+
+            // Redirect to the sign-in page
+            window.location.href = '../pages/sign-in.html';
+        }
+
+        // Call the logOut function
+        logOut();
     </script>
 </body>
 
