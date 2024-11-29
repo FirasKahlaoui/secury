@@ -136,7 +136,6 @@
         </div>
     </main>
 
-    <!-- Firebase and Firestore SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -160,20 +159,46 @@
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                // If the admin is found, redirect to the admin dashboard
-                window.location.href = "../pages/admin-dashboard.html";
+                // Generate a verification code
+                const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+                // Send verification email using EmailJS
+                emailjs.send("service_scwjxdl", "template_36yw543", {
+                    to_email: email, // This should be the user's email address
+                    verification_code: verificationCode
+                }).then(function (response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    // Redirect to admin-verify.html with the email and verification code as query parameters
+                    window.location.href = `../pages/admin-verify.html?email=${encodeURIComponent(email)}&code=${verificationCode}`;
+                }, function (error) {
+                    console.log('FAILED...', error);
+                    errorMessage.innerText = "Failed to send verification email!";
+                    document.getElementById("loading-bar").style.display = 'none';
+                });
             } else {
                 // Display error if no match is found
                 errorMessage.innerText = "Invalid email or password!";
                 document.getElementById("loading-bar").style.display = 'none';
             }
         }
+
+        // Attach signIn function to the window object
+        window.signIn = signIn;
     </script>
 
     <script src="../assets/js/core/popper.min.js"></script>
     <script src="../assets/js/core/bootstrap.min.js"></script>
     <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+    <!-- Add the global script for CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <!-- Add the EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("EsxFOFbF-26aaL3gh");
+        })();
+    </script>
 </body>
 
 </html>
