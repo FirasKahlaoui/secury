@@ -244,68 +244,35 @@
     <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
     <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
 
-    <script>
-        document.getElementById('copyDecryptButton').addEventListener('click', function () {
-            const decryptedText = document.getElementById('decryptedText').innerText;
-            navigator.clipboard.writeText(decryptedText);
-        });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
 
-        document.getElementById('clearDecryptButton').addEventListener('click', function () {
-            document.getElementById('decryptText').value = '';
-            document.getElementById('decryptShift').value = '';
-            document.getElementById('decryptedText').innerText = '';
-        });
-    </script>
+        // Initialize Firebase app and Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    <script>
-        document.getElementById('cysar-decrypt-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const text = document.getElementById('decryptText').value;
-            const shift = parseInt(document.getElementById('decryptShift').value);
-            document.getElementById('decryptedText').innerText = cysarDecrypt(text, shift);
-        });
-    </script>
-    <script>
-        document.getElementById('cysar-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const text = document.getElementById('inputText').value;
-            const shift = parseInt(document.getElementById('shift').value);
-            document.getElementById('encryptedText').innerText = cysarEncrypt(text, shift);
-        });
+        // Function to log user activity in Firestore
+        async function logUserActivity(action, details) {
+            const userId = localStorage.getItem('userId'); // Replace with actual user ID from your authentication system
+            const userEmail = localStorage.getItem('userEmail'); // Replace with actual user email
 
-        function cysarEncrypt(text, shift) {
-            return text.split('').map(char => {
-                const code = char.charCodeAt(0);
-                if (code >= 65 && code <= 90) {
-                    return String.fromCharCode(((code - 65 + shift) % 26) + 65);
-                } else if (code >= 97 && code <= 122) {
-                    return String.fromCharCode(((code - 97 + shift) % 26) + 97);
-                } else {
-                    return char;
-                }
-            }).join('');
+            try {
+                await addDoc(collection(db, "userActivityLogs"), {
+                    userId: userId,
+                    email: userEmail,
+                    action: action,
+                    details: details,
+                    timestamp: serverTimestamp(),
+                });
+                console.log(`Activity logged successfully: ${action}`);
+            } catch (error) {
+                console.error("Error logging activity: ", error);
+            }
         }
-    </script>
 
-    <script>
-        document.getElementById('cysar-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const text = document.getElementById('inputText').value;
-            const shift = parseInt(document.getElementById('shift').value);
-            document.getElementById('encryptedText').innerText = cysarEncrypt(text, shift);
-        });
-
-        document.getElementById('copyButton').addEventListener('click', function () {
-            const encryptedText = document.getElementById('encryptedText').innerText;
-            navigator.clipboard.writeText(encryptedText);
-        });
-
-        document.getElementById('clearButton').addEventListener('click', function () {
-            document.getElementById('inputText').value = '';
-            document.getElementById('shift').value = '';
-            document.getElementById('encryptedText').innerText = '';
-        });
-
+        // Encrypt text function
         function cysarEncrypt(text, shift) {
             return text.split('').map(char => {
                 const code = char.charCodeAt(0);
@@ -313,18 +280,89 @@
             }).join('');
         }
 
+        // Decrypt text function
         function cysarDecrypt(text, shift) {
             return text.split('').map(char => {
                 const code = char.charCodeAt(0);
                 return String.fromCharCode(code - shift);
             }).join('');
         }
-    </script>
-    <script>
-        // Function to check if the user is logged in
+
+        // Handle encryption form submission
+        document.getElementById('cysar-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const text = document.getElementById('inputText').value;
+            const shift = parseInt(document.getElementById('shift').value);
+
+            // Log the encryption activity
+            logUserActivity("Encryption", `Encrypted text: ${text}, Shift: ${shift}`);
+
+            document.getElementById('encryptedText').innerText = cysarEncrypt(text, shift);
+        });
+
+        // Handle decryption form submission
+        document.getElementById('cysar-decrypt-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const text = document.getElementById('decryptText').value;
+            const shift = parseInt(document.getElementById('decryptShift').value);
+
+            // Log the decryption activity
+            logUserActivity("Decryption", `Decrypted text: ${text}, Shift: ${shift}`);
+
+            document.getElementById('decryptedText').innerText = cysarDecrypt(text, shift);
+        });
+
+        // Handle copy encrypted text button
+        document.getElementById('copyButton').addEventListener('click', function () {
+            const encryptedText = document.getElementById('encryptedText').innerText;
+
+            // Log the copy action
+            logUserActivity("Copy Encrypted Text", `Copied encrypted text: ${encryptedText}`);
+
+            navigator.clipboard.writeText(encryptedText);
+        });
+
+        // Handle clear encrypted text button
+        document.getElementById('clearButton').addEventListener('click', function () {
+            // Log the clear action
+            logUserActivity("Clear Encrypted Text", "Cleared the encrypted text and shift fields.");
+
+            document.getElementById('inputText').value = '';
+            document.getElementById('shift').value = '';
+            document.getElementById('encryptedText').innerText = '';
+        });
+
+        // Handle copy decrypted text button
+        document.getElementById('copyDecryptButton').addEventListener('click', function () {
+            const decryptedText = document.getElementById('decryptedText').innerText;
+
+            // Log the copy action for decrypted text
+            logUserActivity("Copy Decrypted Text", `Copied decrypted text: ${decryptedText}`);
+
+            navigator.clipboard.writeText(decryptedText);
+        });
+
+        // Handle clear decrypted text button
+        document.getElementById('clearDecryptButton').addEventListener('click', function () {
+            document.getElementById('decryptText').value = '';
+            document.getElementById('decryptShift').value = '';
+            document.getElementById('decryptedText').innerText = '';
+
+            // Log the clear action for decrypted text
+            logUserActivity("Clear Decrypted Text", "Cleared the decrypted text and shift fields.");
+        });
+
+        // Function to check login status and log activity
         function checkLoginStatus() {
-            // Replace this with your actual login status check
             const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
+
+            if (isLoggedIn) {
+                logUserActivity("Login", "User logged in.");
+                console.log("User is logged in.");
+            } else {
+                logUserActivity("Logout", "User logged out.");
+                console.log("User is not logged in.");
+            }
 
             // Get the navigation items
             const navLogout = document.getElementById('nav-logout');
@@ -345,7 +383,9 @@
 
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
+
     </script>
+
 </body>
 
 </html>
