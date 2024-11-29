@@ -10,6 +10,21 @@ Secury Dashboard is a material design admin dashboard template built with HTML, 
 - Multiple chart libraries
 - Form validation
 - Authentication pages
+- **Password Validation**: Real-time feedback for password strength, ensuring:
+  - Minimum of 6 characters.
+  - At least one uppercase letter.
+  - At least one special symbol.
+- **Email Uniqueness Check**: Prevents duplicate registrations by verifying email addresses against the Firestore database.
+- **Secure Password Storage**: Passwords are hashed using **SHA-256** before being stored in the database.
+- **Pending Registrations**: New users are added to a "waiting" collection for further processing or approval.
+- **Toast Notifications**: Provides user-friendly feedback using **Toastr.js** for errors, success messages, and warnings.
+
+## Tech Stack
+
+- **Firebase Firestore**: For database storage and real-time operations.
+- **JavaScript (ES Modules)**: For client-side functionality.
+- **CryptoJS**: For secure password hashing.
+- **Toastr.js**: For displaying non-intrusive notifications.
 
 ## Installation
 
