@@ -200,6 +200,19 @@
       notification.innerHTML = `<div class="alert ${isSuccess ? 'alert-success' : 'alert-danger'}" role="alert">${message}</div>`;
     }
 
+    async function logEvent(eventType, details) {
+      try {
+        await addDoc(collection(db, "logs"), {
+          eventType,
+          details,
+          timestamp: serverTimestamp(),
+        });
+        console.log(`Log added: ${eventType}`, details);
+      } catch (error) {
+        console.error("Error logging event:", error);
+      }
+    }
+
     window.validateForm = async function validateForm() {
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
@@ -207,8 +220,12 @@
       const type = 1;
       const termsAccepted = document.getElementById("flexCheckDefault").checked;
 
+      // Log when form is being validated
+      await logEvent("Form Validation", { email, termsAccepted });
+
       if (!termsAccepted) {
         showNotification("You must agree to the Terms and Conditions.", false);
+        await logEvent("Form Validation Failed", { email, reason: "Terms not accepted" });
         return;
       }
 
@@ -218,6 +235,9 @@
         /[!@#$%^&*(),.?":{}|<>]/.test(passwordValue) &&
         passwordValue === confirmPassword.value
       ) {
+        // Log the start of user email check
+        await logEvent("Checking Email", { email });
+
         // Check if email already exists in the users collection
         const usersRef = collection(db, "users");
         const emailQuery = query(usersRef, where("email", "==", email));
@@ -225,11 +245,15 @@
 
         if (!querySnapshot.empty) {
           showNotification("This email is already registered.", false);
+          await logEvent("Email Check Failed", { email, reason: "Email already exists" });
           return;
         }
 
         const hashedPassword = CryptoJS.SHA256(passwordValue).toString();
         try {
+          // Log successful registration attempt
+          await logEvent("User Registration", { email, name, status: "Success" });
+
           await addDoc(collection(db, "waiting"), {
             name,
             email,
@@ -244,12 +268,17 @@
         } catch (error) {
           console.error("Error:", error);
           showNotification("An error occurred. Please try again.", false);
+          // Log error during registration
+          await logEvent("User Registration Failed", { email, reason: error.message });
         }
       } else {
         showNotification("Check your password or confirm the inputs!", false);
+        // Log failed validation due to password issues
+        await logEvent("Password Validation Failed", { email, reason: "Password criteria not met" });
       }
     };
   </script>
+
 
 </body>
 
