@@ -55,8 +55,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                         <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark"
-                                href="javascript:;">Security</a>
-                        </li>
+                                href="javascript:;">Security</a></li>
                         <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Admin Dashboard</li>
                     </ol>
                 </nav>
@@ -82,8 +81,14 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
 
-            // Approve the user and move them to users collection
-            window.approveUser = async (userId, userType) => {
+            window.approveUser = async (userId) => {
+                const userType = document.querySelector(`input[name="userType-${userId}"]:checked`)?.value;
+
+                if (!userType) {
+                    alert('Please select a user type before approving.');
+                    return;
+                }
+
                 const userRef = doc(db, "waiting", userId);
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
@@ -93,11 +98,31 @@
                     await setDoc(doc(db, "users", userId), {
                         name: userData.name,
                         email: userData.email,
-                        type: userType
+                        type: parseInt(userType, 10), // Ensure userType is an integer
+                        password: userData.password // Retain the user's password
                     });
 
                     // Delete user from 'waiting' collection
                     await deleteDoc(userRef);
+
+                    // Define email content based on user type
+                    let emailTitle, activationMessage, userTypeMessage, featuresList, loginInstructions;
+                    if (userType === '1') {
+                        emailTitle = 'Account Activation - Full Access';
+                        activationMessage = 'Congratulations! Your account has been successfully activated.';
+                        userTypeMessage = 'You are now a User with full access to the app.';
+                        featuresList = 'Cysar Encryption, AES Encryption, KeyVault';
+                        loginInstructions = 'You can now log in and start using these features.';
+                    } else if (userType === '2') {
+                        emailTitle = 'Account Activation - Limited Access';
+                        activationMessage = 'Congratulations! Your account has been successfully activated.';
+                        userTypeMessage = 'You are now a User with limited access to the app.';
+                        featuresList = 'Cysar Encryption';
+                        loginInstructions = 'You can now log in and start using these features.';
+                    }
+
+                    // Send email
+                    sendEmail(userData.email, emailTitle, userData.name, activationMessage, userTypeMessage, featuresList, loginInstructions);
 
                     console.log(`User ${userData.name} approved and moved to users collection.`);
                     fetchWaitingUsers(); // Refresh the list of waiting users
@@ -113,9 +138,31 @@
 
                     // Delete the user from the waiting collection
                     await deleteDoc(userRef);
+
+                    // Send email
+                    sendEmail(userData.email, 'Account Denied', userData.name, 'We regret to inform you that your request to create an account has been denied.', '', '', 'If you believe this is an error or have any questions regarding the decision, please contact our support team.');
+
                     console.log(`User ${userData.name} denied and removed from waiting list.`);
                     fetchWaitingUsers(); // Refresh the list of waiting users
                 }
+            };
+
+            // Send the email using EmailJS
+            const sendEmail = (email, emailTitle, userName, activationMessage, userTypeMessage, featuresList, loginInstructions) => {
+                console.log('Sending email to', email);
+                emailjs.send("service_scwjxdl", "template_frng1sa", {
+                    to_email: email,
+                    email_title: emailTitle,
+                    user_name: userName,
+                    activation_message: activationMessage,
+                    user_type_message: userTypeMessage,
+                    features_list: featuresList,
+                    login_instructions: loginInstructions
+                }).then((response) => {
+                    console.log('Email sent successfully', response);
+                }).catch((error) => {
+                    console.log('Error sending email', error);
+                });
             };
 
             // Fetch waiting users from Firestore
@@ -139,7 +186,7 @@
                                     <input type="radio" name="userType-${user.id}" value="2" id="lowUser-${user.id}" /> Low User
                                 </div>
                                 <div>
-                                    <button class="btn btn-success mt-2" onclick="approveUser('${user.id}', 1)">Accept</button>
+                                    <button class="btn btn-success mt-2" onclick="approveUser('${user.id}')">Accept</button>
                                     <button class="btn btn-danger mt-2" onclick="denyUser('${user.id}')">Deny</button>
                                 </div>
                             </div>
@@ -159,14 +206,12 @@
     <script src="../assets/js/core/bootstrap.min.js"></script>
     <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
-    <script>
-        var win = navigator.platform.indexOf('Win') > -1;
-        if (win && document.querySelector('#sidenav-scrollbar')) {
-            var options = {
-                damping: '0.5'
-            }
-            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-        }
+    <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("EsxFOFbF-26aaL3gh");
+        })();
     </script>
 </body>
 
