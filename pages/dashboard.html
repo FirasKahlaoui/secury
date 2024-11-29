@@ -38,25 +38,26 @@
     <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link active bg-gradient-dark text-white" href="../pages/dashboard.html">
+          <a class="nav-link active bg-gradient-dark text-white" href="../pages/dashboard.html"
+            onclick="redirectToSignIn(event)">
             <i class="material-symbols-rounded opacity-5">dashboard</i>
             <span class="nav-link-text ms-1">Dashboard</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="../pages/cysar-encryption.html">
+          <a class="nav-link text-dark" href="#" onclick="redirectToPage(event, '../pages/cysar-encryption.html')">
             <i class="material-symbols-rounded opacity-5">lock</i>
             <span class="nav-link-text ms-1">Cysar Encryption</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="../pages/aes-encryption.html">
+          <a class="nav-link text-dark" href="#" onclick="redirectToPage(event, '../pages/aes-encryption.html')">
             <i class="material-symbols-rounded opacity-5">vpn_key</i>
             <span class="nav-link-text ms-1">AES Encryption</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="../pages/key-vault.html">
+          <a class="nav-link text-dark" href="#" onclick="redirectToPage(event, '../pages/key-vault.html')">
             <i class="material-symbols-rounded opacity-5">key</i>
             <span class="nav-link-text ms-1">Key Vault</span>
           </a>
@@ -65,7 +66,7 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Account pages</h6>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="../pages/profile.html">
+          <a class="nav-link text-dark" href="#" onclick="redirectToPage(event, '../pages/profile.html')">
             <i class="material-symbols-rounded opacity-5">person</i>
             <span class="nav-link-text ms-1">Profile</span>
           </a>
@@ -636,6 +637,18 @@
 
     // Call the function on page load
     document.addEventListener('DOMContentLoaded', checkLoginStatus);
+  </script>
+
+  <script>
+    function redirectToPage(event, targetUrl) {
+      const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
+      if (!isLoggedIn) {
+        event.preventDefault();
+        window.location.href = '../pages/sign-in.html';
+      } else {
+        window.location.href = targetUrl;
+      }
+    }
   </script>
 </body>
 
