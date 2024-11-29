@@ -286,7 +286,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import firebaseConfig from "../config.js";
 
         // Initialize Firebase
@@ -345,6 +345,21 @@
         // Call the function on page load
         document.addEventListener('DOMContentLoaded', checkAccess);
 
+        // Function to log user activity
+        async function logUserActivity(action, details) {
+            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
+            try {
+                await addDoc(collection(db, "userActivityLogs"), {
+                    email: userEmail,
+                    action: action,
+                    details: details,
+                    timestamp: serverTimestamp(),
+                });
+                console.log(`Activity logged: ${action} - ${details}`);
+            } catch (error) {
+                console.error("Error logging activity:", error);
+            }
+        }
 
         // Function to encrypt the secret
         function encryptSecret(secret) {
@@ -368,11 +383,16 @@
             const formMessage = document.getElementById('form-message');
 
             try {
+                // Create the secret document in Firestore
                 await addDoc(collection(db, 'keyvault'), {
                     owner: userEmail,
                     secretName: secretName,
                     secret: encryptedSecret
                 });
+
+                // Log the secret creation activity
+                await logUserActivity("Create Secret", `Secret "${secretName}" created.`);
+
                 formMessage.textContent = 'Secret created successfully!';
                 formMessage.classList.remove('text-danger');
                 formMessage.classList.add('text-success');
@@ -402,18 +422,23 @@
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                 listItem.innerHTML = `
-              <span>${secretData.secretName}</span>
-              <button class="btn btn-danger btn-sm" onclick="deleteSecret('${doc.id}')">Delete</button>
+                <span>${secretData.secretName}</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteSecret('${doc.id}', '${secretData.secretName}')">Delete</button>
             `;
                 secretsList.appendChild(listItem);
             });
         }
 
         // Function to delete a secret
-        window.deleteSecret = async function (secretId) {
+        window.deleteSecret = async function (secretId, secretName) {
             const formMessage = document.getElementById('form-message');
             try {
+                // Delete the secret document from Firestore
                 await deleteDoc(doc(db, 'keyvault', secretId));
+
+                // Log the secret deletion activity
+                await logUserActivity("Delete Secret", `Secret "${secretName}" deleted.`);
+
                 formMessage.textContent = 'Secret deleted successfully!';
                 formMessage.classList.remove('text-danger');
                 formMessage.classList.add('text-success');
@@ -429,6 +454,7 @@
         // Load secrets on page load
         document.addEventListener('DOMContentLoaded', loadSecrets);
     </script>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 
