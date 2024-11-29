@@ -215,6 +215,17 @@
       }
     };
 
+    // Function to send email (using EmailJS or similar service)
+    const sendEmail = async (userEmail, emailTemplate, emailData) => {
+      try {
+        // Send the email using EmailJS
+        await emailjs.send("service_scwjxdl", emailTemplate, emailData);
+        console.log("Email sent to:", userEmail);
+      } catch (error) {
+        console.error("Error sending email:", error);
+      }
+    };
+
     // Sign-In Function (attached to window)
     window.signIn = async function () {
       const email = document.getElementById("email").value.trim();
@@ -248,6 +259,18 @@
           if (userData.lockoutTime && currentTime < userData.lockoutTime.seconds * 1000) {
             errorMessage.textContent = "Your account is locked. Please try again later.";
             await logEvent("Failed Login", { email, reason: "Account locked" });
+
+            // Send the lockout email notification using the "template_frng1sa"
+            const emailData = {
+              to_email: userData.email,
+              user_name: userData.name,
+              activation_message: 'We noticed multiple unsuccessful login attempts to your account.',
+              user_type_message: 'For your security, your account has been temporarily locked.',
+              features_list: 'Someone attempted to log in to your account, but the login failed multiple times.',
+              login_instructions: 'If this was not you, please contact support. Otherwise, try again after the lockout period ends.',
+            };
+
+            await sendEmail(userData.email, "template_frng1sa", emailData);
             return;
           }
 
@@ -319,6 +342,18 @@
 
               errorMessage.textContent = "Your account has been locked due to too many failed attempts. Please try again later.";
               await logEvent("Failed Login - Account Locked", { email, failedAttempts });
+
+              // Send the lockout email notification using the "template_frng1sa"
+              const emailData = {
+                to_email: userData.email,
+                user_name: userData.name,
+                activation_message: 'We noticed multiple unsuccessful login attempts to your account.',
+                user_type_message: 'For your security, your account has been temporarily locked.',
+                features_list: 'Someone attempted to log in to your account, but the login failed multiple times.',
+                login_instructions: 'If this was not you, please contact support. Otherwise, try again after the lockout period ends.',
+              };
+
+              await sendEmail(userData.email, "template_frng1sa", emailData);
             } else {
               // Update failedAttempts in Firestore
               await updateDoc(doc(db, "users", userDoc.id), { failedAttempts });
