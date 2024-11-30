@@ -6,15 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
     <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-    <title>Secury - Admin Dashboard</title>
+    <title>Secury - Logs Visualization</title>
     <link rel="stylesheet" type="text/css"
         href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
     <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
     <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -38,10 +38,11 @@
                         <span class="nav-link-text ms-1">Admin Dashboard</span>
                     </a>
                 </li>
-                <a class="nav-link active bg-gradient-dark text-white" href="../pages/admin-logs.html">
-                    <i class="material-symbols-rounded opacity-5">history</i>
-                    <span class="nav-link-text ms-1">Logs</span>
-                </a>
+                <li class="nav-item">
+                    <a class="nav-link active bg-gradient-dark text-white" href="../pages/admin-logs.html">
+                        <i class="material-symbols-rounded opacity-5">history</i>
+                        <span class="nav-link-text ms-1">Logs</span>
+                    </a>
                 </li>
                 <li class="nav-item" id="nav-logout">
                     <a class="nav-link text-dark" href="../pages/admin-logout.html">
@@ -60,24 +61,124 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                         <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark"
-                                href="javascript:;">Security</a></li>
-                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Logs Visualisation</li>
+                                href="javascript:;">Security</a>
+                        </li>
+                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Logs Visualization</li>
                     </ol>
                 </nav>
             </div>
         </nav>
 
-        
-
+        <!-- Visualization Section -->
+        <div class="container mt-4">
+            <h5 class="text-center">Logs Overview</h5>
+            <p id="most-active-user" class="text-muted text-center">Loading...</p>
+            <p id="most-used-algorithm" class="text-muted text-center">Loading...</p>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <canvas id="activityChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="algorithmChart"></canvas>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Core JS Files -->
-    <script src="../assets/js/core/popper.min.js"></script>
-    <script src="../assets/js/core/bootstrap.min.js"></script>
-    <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
-    <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
-    <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
+    <!-- Firebase and Visualization Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import firebaseConfig from "../config.js";
 
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to fetch and process logs
+        async function fetchLogsAndVisualize() {
+            const logsCollection = collection(db, "userActivityLogs");
+            const logsSnapshot = await getDocs(logsCollection);
+            const logs = logsSnapshot.docs.map(doc => doc.data());
+
+            // Data processing
+            const userActivityCount = {};
+            const algorithmUsageCount = { AES: 0, Caesar: 0 };
+
+            logs.forEach(log => {
+                // Count user activity
+                userActivityCount[log.user] = (userActivityCount[log.user] || 0) + 1;
+
+                // Count algorithm usage
+                if (log.algorithm === "AES") algorithmUsageCount.AES += 1;
+                if (log.algorithm === "Caesar") algorithmUsageCount.Caesar += 1;
+            });
+
+            // Get most active user and most used algorithm
+            const mostActiveUser = Object.keys(userActivityCount).reduce((a, b) =>
+                userActivityCount[a] > userActivityCount[b] ? a : b
+            );
+            const mostUsedAlgorithm = algorithmUsageCount.AES > algorithmUsageCount.Caesar ? "AES" : "Caesar";
+
+            // Update UI
+            document.getElementById("most-active-user").innerText = `Most Active User: ${mostActiveUser} (${userActivityCount[mostActiveUser]} activities)`;
+            document.getElementById("most-used-algorithm").innerText = `Most Used Algorithm: ${mostUsedAlgorithm}`;
+
+            // Create visualizations
+            createBarChart(userActivityCount, "activityChart", "User Activity");
+            createPieChart(algorithmUsageCount, "algorithmChart", "Algorithm Usage");
+        }
+
+        // Function to create a bar chart
+        function createBarChart(data, canvasId, label) {
+            const ctx = document.getElementById(canvasId).getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label,
+                        data: Object.values(data),
+                        backgroundColor: "rgba(54, 162, 235, 0.6)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to create a pie chart
+        function createPieChart(data, canvasId, label) {
+            const ctx = document.getElementById(canvasId).getContext("2d");
+            new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label,
+                        data: Object.values(data),
+                        backgroundColor: ["rgba(255, 99, 132, 0.6)", "rgba(54, 162, 235, 0.6)"],
+                        borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+        // Call the function to fetch and visualize data
+        fetchLogsAndVisualize();
+    </script>
 </body>
 
 </html>
