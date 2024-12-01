@@ -249,8 +249,15 @@
             const tableBody = document.getElementById('activity-history-table');
             tableBody.innerHTML = '';
 
+            const logs = [];
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
+                logs.push(doc.data());
+            });
+
+            // Sort logs by timestamp in descending order
+            logs.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+            logs.forEach((data) => {
                 const row = document.createElement('tr');
 
                 const timestampCell = document.createElement('td');
