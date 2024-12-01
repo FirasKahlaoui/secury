@@ -79,11 +79,19 @@
             const code = document.getElementById("code").value;
             const errorMessage = document.getElementById("error-message");
 
+            console.log('Email:', email); // Log the email for debugging
             console.log('Entered Code:', code); // Log the entered code for debugging
+
+            if (!email) {
+                errorMessage.textContent = "Email not found. Please ensure you are logged in.";
+                return;
+            }
 
             try {
                 const usersQuery = query(collection(db, "users"), where("email", "==", email), where("verificationCode", "==", code));
                 const querySnapshot = await getDocs(usersQuery);
+
+                console.log('Query Snapshot:', querySnapshot); // Log the query snapshot for debugging
 
                 if (!querySnapshot.empty) {
                     const userDoc = querySnapshot.docs[0];

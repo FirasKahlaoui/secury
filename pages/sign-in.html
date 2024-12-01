@@ -226,7 +226,6 @@
       }
     };
 
-    // Sign-In Function (attached to window)
     window.signIn = async function () {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
@@ -289,6 +288,7 @@
             if (rememberMe && userData.rememberMe) {
               localStorage.setItem('isLoggedIn', 'true');
               localStorage.setItem('userEmail', email);
+              console.log('Email stored in localStorage:', email); // Log the email stored in localStorage
               window.location.href = "../pages/dashboard.html";
             } else if (rememberMe && !userData.rememberMe) {
               const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -300,6 +300,8 @@
                 to_email: email,
                 verification_code: verificationCode
               }).then(function () {
+                localStorage.setItem('userEmail', email);
+                console.log('Email stored in localStorage:', email); // Log the email stored in localStorage
                 setTimeout(() => {
                   window.location.href = "../pages/verify.html";
                 }, 3000);
@@ -316,6 +318,8 @@
                 to_email: email,
                 verification_code: verificationCode
               }).then(function () {
+                localStorage.setItem('userEmail', email);
+                console.log('Email stored in localStorage:', email); // Log the email stored in localStorage
                 setTimeout(() => {
                   window.location.href = "../pages/verify.html";
                 }, 3000);
