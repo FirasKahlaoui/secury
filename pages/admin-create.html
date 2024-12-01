@@ -15,6 +15,20 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+    <style>
+        .form-control {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+
+        .form-control:focus {
+            background-color: #ffffff;
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -73,7 +87,64 @@
                 </nav>
             </div>
         </nav>
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6>Create Admin</h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="createAdminForm">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Create Admin</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+            import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+            import firebaseConfig from "../config.js";
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            document.getElementById('createAdminForm').addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const createdAt = new Date().toLocaleString('fr-FR', { timeZone: 'UTC' });
+                const role = 'admin';
+
+                const adminData = {
+                    createdAt,
+                    email,
+                    password,
+                    role
+                };
+
+                try {
+                    await addDoc(collection(db, 'admins'), adminData);
+                    alert('Admin created successfully!');
+                } catch (error) {
+                    console.error('Error creating admin:', error);
+                    alert('Error creating admin. Please try again.');
+                }
+            });
+        </script>
 
         <script src="../assets/js/core/popper.min.js"></script>
         <script src="../assets/js/core/bootstrap.min.js"></script>
