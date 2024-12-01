@@ -9,8 +9,9 @@
 
 <body>
     <script>
-        // Set adminIsLoggedIn to false in localStorage
+        // Set adminIsLoggedIn to false and remove adminEmail from localStorage
         localStorage.setItem('adminIsLoggedIn', 'false');
+        localStorage.removeItem('adminEmail');
         
         // Redirect to the sign-in page
         window.location.href = '../pages/admin-sign-in.html';
