@@ -94,8 +94,9 @@
                             isLoggedIn: true
                         });
 
-                        // Set adminIsLoggedIn in localStorage
+                        // Set adminIsLoggedIn and adminEmail in localStorage
                         localStorage.setItem('adminIsLoggedIn', 'true');
+                        localStorage.setItem('adminEmail', email);
 
                         // Show loading bar
                         document.getElementById("loading-bar").style.display = "block";
