@@ -28,6 +28,26 @@
             outline: 0;
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
+
+        .notification {
+            display: none;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .notification.success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .notification.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
     </style>
 </head>
 
@@ -106,6 +126,21 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary">Create Admin</button>
                             </form>
+                            <div id="notification" class="notification"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="adminList" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6>Existing Admins</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul id="adminListBody" class="list-group">
+                                <!-- Admins will be listed here -->
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -114,7 +149,7 @@
 
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-            import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+            import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
             import firebaseConfig from "../config.js";
 
             // Initialize Firebase
@@ -129,6 +164,17 @@
                 const createdAt = new Date().toLocaleString('fr-FR', { timeZone: 'UTC' });
                 const role = 'admin';
 
+                if (!isStrongPassword(password)) {
+                    showNotification('Password is not strong enough.', 'error');
+                    return;
+                }
+
+                const adminExists = await checkAdminExists(email);
+                if (adminExists) {
+                    showNotification('Admin with this email already exists.', 'error');
+                    return;
+                }
+
                 const adminData = {
                     createdAt,
                     email,
@@ -138,12 +184,69 @@
 
                 try {
                     await addDoc(collection(db, 'admins'), adminData);
-                    alert('Admin created successfully!');
+                    showNotification('Admin created successfully!', 'success');
+                    document.getElementById('createAdminForm').reset();
+
+                    if (email === 'stagehub.op@gmail.com') {
+                        fetchAdmins();
+                    }
                 } catch (error) {
                     console.error('Error creating admin:', error);
-                    alert('Error creating admin. Please try again.');
+                    showNotification('Error creating admin. Please try again.', 'error');
                 }
             });
+
+            function isStrongPassword(password) {
+                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+                return regex.test(password);
+            }
+
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+
+            async function checkAdminExists(email) {
+                const q = query(collection(db, 'admins'), where('email', '==', email));
+                const querySnapshot = await getDocs(q);
+                return !querySnapshot.empty;
+            }
+
+            async function fetchAdmins() {
+                const adminList = document.getElementById('adminList');
+                const adminListBody = document.getElementById('adminListBody');
+                adminListBody.innerHTML = '';
+
+                const querySnapshot = await getDocs(collection(db, 'admins'));
+                querySnapshot.forEach((doc) => {
+                    const admin = doc.data();
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        ${admin.email}
+                        <button class="btn btn-danger btn-sm" onclick="removeAdmin('${doc.id}')">Remove</button>
+                    `;
+                    adminListBody.appendChild(li);
+                });
+
+                adminList.style.display = 'block';
+            }
+
+            window.removeAdmin = async function (adminId) {
+                try {
+                    await deleteDoc(doc(db, 'admins', adminId));
+                    showNotification('Admin removed successfully!', 'success');
+                    fetchAdmins();
+                } catch (error) {
+                    console.error('Error removing admin:', error);
+                    showNotification('Error removing admin. Please try again.', 'error');
+                }
+            };
         </script>
 
         <script src="../assets/js/core/popper.min.js"></script>
