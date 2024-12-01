@@ -145,6 +145,9 @@
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                                 Activity</th>
+                                            <th
+                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                Details</th>
                                         </tr>
                                     </thead>
                                     <tbody id="activity-history-table">
@@ -255,8 +258,12 @@
                 row.appendChild(timestampCell);
 
                 const activityCell = document.createElement('td');
-                activityCell.textContent = data.activity;
+                activityCell.textContent = data.action;
                 row.appendChild(activityCell);
+
+                const detailsCell = document.createElement('td');
+                detailsCell.textContent = data.details;
+                row.appendChild(detailsCell);
 
                 tableBody.appendChild(row);
             });
