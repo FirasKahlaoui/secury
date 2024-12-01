@@ -187,7 +187,7 @@
                     showNotification('Admin created successfully!', 'success');
                     document.getElementById('createAdminForm').reset();
 
-                    if (email === 'stagehub.op@gmail.com') {
+                    if (localStorage.getItem('adminEmail') === 'stagehub.op@gmail.com') {
                         fetchAdmins();
                     }
                 } catch (error) {
@@ -222,7 +222,8 @@
                 const adminListBody = document.getElementById('adminListBody');
                 adminListBody.innerHTML = '';
 
-                const querySnapshot = await getDocs(collection(db, 'admins'));
+                const q = query(collection(db, 'admins'), where('email', '!=', 'stagehub.op@gmail.com'));
+                const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((doc) => {
                     const admin = doc.data();
                     const li = document.createElement('li');
@@ -247,6 +248,11 @@
                     showNotification('Error removing admin. Please try again.', 'error');
                 }
             };
+
+            // Check if the logged-in admin is 'stagehub.op@gmail.com' and fetch admins if true
+            if (localStorage.getItem('adminEmail') === 'stagehub.op@gmail.com') {
+                fetchAdmins();
+            }
         </script>
 
         <script src="../assets/js/core/popper.min.js"></script>
