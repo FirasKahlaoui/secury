@@ -159,7 +159,7 @@
                         <div class="card-header pb-0">
                             <div class="d-flex align-items-center">
                                 <p class="mb-0">Edit Profile</p>
-                                <button class="btn btn-primary btn-sm ms-auto">Save</button>
+                                <button class="btn btn-primary btn-sm ms-auto" id="save-password">Save</button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -167,38 +167,20 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Full Name</label>
-                                        <input class="form-control custom-input" type="text" name="full-name" value="">
+                                        <label for="full-name" class="form-control-label">Full Name</label>
+                                        <input class="form-control custom-input" type="text" id="full-name" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Email address</label>
-                                        <input class="form-control custom-input" type="email" name="email" value="">
+                                        <label for="email" class="form-control-label">Email address</label>
+                                        <input class="form-control custom-input" type="email" id="email" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Username</label>
-                                        <input class="form-control custom-input" type="text" name="username" value="">
-                                    </div>
-                                </div>
-                            </div>
-                            <hr class="horizontal dark">
-                            <p class="text-uppercase text-sm">Contact Information</p>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Address</label>
-                                        <input class="form-control custom-input" type="text" name="address"
-                                            placeholder="Enter your address">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Phone Number</label>
-                                        <input class="form-control custom-input" type="text" name="phone-number"
-                                            placeholder="Enter your phone number">
+                                        <label for="created-at" class="form-control-label">Account Created At</label>
+                                        <input class="form-control custom-input" type="text" id="created-at" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -207,24 +189,23 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Current
+                                        <label for="current-password" class="form-control-label">Current
                                             Password</label>
-                                        <input class="form-control custom-input" type="password"
-                                            name="current-password">
+                                        <input class="form-control custom-input" type="password" id="current-password">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">New Password</label>
-                                        <input class="form-control custom-input" type="password" name="new-password">
+                                        <label for="new-password" class="form-control-label">New Password</label>
+                                        <input class="form-control custom-input" type="password" id="new-password">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Confirm New
+                                        <label for="confirm-new-password" class="form-control-label">Confirm New
                                             Password</label>
                                         <input class="form-control custom-input" type="password"
-                                            name="confirm-new-password">
+                                            id="confirm-new-password">
                                     </div>
                                 </div>
                             </div>
@@ -249,110 +230,109 @@
                     </div>
                 </div>
             </div>
-            </div>
         </footer>
 
-    </main>
-    <!--   Core JS Files   -->
-    <script src="../assets/js/core/popper.min.js"></script>
-    <script src="../assets/js/core/bootstrap.min.js"></script>
-    <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
-    <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
-    <script>
-        var win = navigator.platform.indexOf('Win') > -1;
-        if (win && document.querySelector('#sidenav-scrollbar')) {
-            var options = {
-                damping: '0.5'
-            }
-            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-        }
-    </script>
-    <!-- Github buttons -->
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
-    <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-    <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
-    <script>
-        // Function to check if the user is logged in
-        function checkLoginStatus() {
-            // Replace this with your actual login status check
-            const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
-
-            // Get the navigation items
-            const navLogout = document.getElementById('nav-logout');
-            const navSignIn = document.getElementById('nav-sign-in');
-            const navSignUp = document.getElementById('nav-sign-up');
-
-            // Toggle visibility based on login status
-            if (isLoggedIn) {
-                navLogout.style.display = 'block';
-                navSignIn.style.display = 'none';
-                navSignUp.style.display = 'none';
-            } else {
-                navLogout.style.display = 'none';
-                navSignIn.style.display = 'block';
-                navSignUp.style.display = 'block';
-            }
-        }
-
-        // Call the function on page load
-        document.addEventListener('DOMContentLoaded', checkLoginStatus);
-    </script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import firebaseConfig from "../config.js";
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
-
-            try {
-                const userDoc = doc(db, 'users', userEmail);
-                const userSnapshot = await getDoc(userDoc);
-
-                if (userSnapshot.exists()) {
-                    const userData = userSnapshot.data();
-                    document.querySelector('input[name="full-name"]').value = userData.name || '';
-                    document.querySelector('input[name="email"]').value = userData.email || '';
-                    document.querySelector('input[name="email"]').readOnly = true;
-                    document.querySelector('input[name="email"]').style.backgroundColor = '#f0f0f0';
-                    document.querySelector('input[name="username"]').value = userData.username || '';
-                    document.querySelector('input[name="address"]').placeholder = 'Enter your address';
-                    document.querySelector('input[name="phone-number"]').placeholder = 'Enter your phone number';
-                } else {
-                    console.log('No such document!');
+        <script src="../assets/js/core/popper.min.js"></script>
+        <script src="../assets/js/core/bootstrap.min.js"></script>
+        <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
+        <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+        <script>
+            var win = navigator.platform.indexOf('Win') > -1;
+            if (win && document.querySelector('#sidenav-scrollbar')) {
+                var options = {
+                    damping: '0.5'
                 }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
+                Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
             }
-        });
+        </script>
+        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        <script src="../assets/js/material-dashboard.min.js?v=3.2.0"></script>
+        <script>
+            // Function to check if the user is logged in
+            function checkLoginStatus() {
+                const isLoggedIn = Boolean(localStorage.getItem('isLoggedIn'));
+                const navLogout = document.getElementById('nav-logout');
+                const navSignIn = document.getElementById('nav-sign-in');
+                const navSignUp = document.getElementById('nav-sign-up');
 
-        document.querySelector('.btn-primary').addEventListener('click', async () => {
-            const userEmail = localStorage.getItem('userEmail'); // Get userEmail from localStorage
-
-            const name = document.querySelector('input[name="full-name"]').value;
-            const username = document.querySelector('input[name="username"]').value;
-            const address = document.querySelector('input[name="address"]').value;
-            const phoneNumber = document.querySelector('input[name="phone-number"]').value;
-
-            try {
-                const userDoc = doc(db, 'users', userEmail);
-                await updateDoc(userDoc, {
-                    name: name,
-                    username: username,
-                    address: address,
-                    phoneNumber: phoneNumber
-                });
-                alert('Profile updated successfully!');
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                alert('Failed to update profile.');
+                if (isLoggedIn) {
+                    navLogout.style.display = 'block';
+                    navSignIn.style.display = 'none';
+                    navSignUp.style.display = 'none';
+                } else {
+                    navLogout.style.display = 'none';
+                    navSignIn.style.display = 'block';
+                    navSignUp.style.display = 'block';
+                }
             }
-        });
-    </script>
+
+            document.addEventListener('DOMContentLoaded', checkLoginStatus);
+        </script>
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+            import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+            import firebaseConfig from "../config.js";
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                const userEmail = localStorage.getItem('userEmail');
+
+                try {
+                    const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
+                    const querySnapshot = await getDocs(usersQuery);
+
+                    if (!querySnapshot.empty) {
+                        const userDoc = querySnapshot.docs[0];
+                        const userData = userDoc.data();
+                        document.getElementById('full-name').value = userData.name || '';
+                        document.getElementById('email').value = userData.email || '';
+                        document.getElementById('created-at').value = new Date(userData.timestamp.seconds * 1000).toLocaleString();
+                    } else {
+                        console.log('No such document!');
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+            });
+
+            document.getElementById('save-password').addEventListener('click', async () => {
+                const userEmail = localStorage.getItem('userEmail');
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+                if (newPassword !== confirmNewPassword) {
+                    alert('New passwords do not match.');
+                    return;
+                }
+
+                try {
+                    const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
+                    const querySnapshot = await getDocs(usersQuery);
+
+                    if (!querySnapshot.empty) {
+                        const userDoc = querySnapshot.docs[0];
+                        const userData = userDoc.data();
+                        const hashedCurrentPassword = CryptoJS.SHA256(currentPassword).toString();
+
+                        if (hashedCurrentPassword === userData.password) {
+                            const hashedNewPassword = CryptoJS.SHA256(newPassword).toString();
+                            await updateDoc(doc(db, 'users', userDoc.id), { password: hashedNewPassword });
+                            alert('Password updated successfully!');
+                        } else {
+                            alert('Current password is incorrect.');
+                        }
+                    } else {
+                        console.log('No such document!');
+                    }
+                } catch (error) {
+                    console.error('Error updating password:', error);
+                    alert('Failed to update password.');
+                }
+            });
+        </script>
 </body>
 
 </html>
