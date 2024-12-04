@@ -46,6 +46,25 @@
             box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
             /* Subtle glow */
         }
+        .notification {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                background-color: #444;
+                color: #fff;
+                border-radius: 5px;
+                z-index: 1000;
+                opacity: 0.9;
+            }
+
+            .notification.success {
+                background-color: #4caf50;
+            }
+
+            .notification.error {
+                background-color: #f44336;
+            }
     </style>
 </head>
 
@@ -304,7 +323,7 @@
                 const confirmNewPassword = document.getElementById('confirm-new-password').value;
 
                 if (newPassword !== confirmNewPassword) {
-                    alert('New passwords do not match.');
+                    showNotification('New passwords do not match.', 'error');
                     return;
                 }
 
@@ -320,19 +339,61 @@
                         if (hashedCurrentPassword === userData.password) {
                             const hashedNewPassword = CryptoJS.SHA256(newPassword).toString();
                             await updateDoc(doc(db, 'users', userDoc.id), { password: hashedNewPassword });
-                            alert('Password updated successfully!');
+                            showNotification('Password updated successfully!', 'success');
+                            setTimeout(() => {
+                                logOut();
+                            }, 2000);
                         } else {
-                            alert('Current password is incorrect.');
+                            showNotification('Current password is incorrect.', 'error');
                         }
                     } else {
                         console.log('No such document!');
                     }
                 } catch (error) {
                     console.error('Error updating password:', error);
-                    alert('Failed to update password.');
+                    showNotification('Failed to update password.', 'error');
                 }
             });
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+
+            async function logOut() {
+                const userEmail = localStorage.getItem('userEmail');
+
+                // Log the logout activity to Firestore
+                await logUserActivity("Logout", `User with email ${userEmail} has logged out.`);
+
+                // Clear the login status
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userEmail');
+
+                // Redirect to the sign-in page
+                window.location.href = '../pages/sign-in.html';
+            }
+
+            async function logUserActivity(action, details) {
+                try {
+                    await addDoc(collection(db, "userActivityLogs"), {
+                        email: localStorage.getItem('userEmail'),
+                        action: action,
+                        details: details,
+                        timestamp: serverTimestamp(),
+                    });
+                    console.log(`Activity logged successfully: ${action}`);
+                } catch (error) {
+                    console.error("Error logging activity: ", error);
+                }
+            }
         </script>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </body>
 
