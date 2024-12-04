@@ -46,25 +46,26 @@
             box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
             /* Subtle glow */
         }
+
         .notification {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                padding: 10px 20px;
-                background-color: #444;
-                color: #fff;
-                border-radius: 5px;
-                z-index: 1000;
-                opacity: 0.9;
-            }
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #444;
+            color: #fff;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0.9;
+        }
 
-            .notification.success {
-                background-color: #4caf50;
-            }
+        .notification.success {
+            background-color: #4caf50;
+        }
 
-            .notification.error {
-                background-color: #f44336;
-            }
+        .notification.error {
+            background-color: #f44336;
+        }
     </style>
 </head>
 
@@ -287,21 +288,21 @@
 
             document.addEventListener('DOMContentLoaded', checkLoginStatus);
         </script>
-        <script type="module">
+                <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-            import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+            import { getFirestore, collection, query, where, getDocs, updateDoc, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
             import firebaseConfig from "../config.js";
-
+        
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
-
+        
             document.addEventListener('DOMContentLoaded', async () => {
                 const userEmail = localStorage.getItem('userEmail');
-
+        
                 try {
                     const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
                     const querySnapshot = await getDocs(usersQuery);
-
+        
                     if (!querySnapshot.empty) {
                         const userDoc = querySnapshot.docs[0];
                         const userData = userDoc.data();
@@ -315,31 +316,43 @@
                     console.error('Error fetching user data:', error);
                 }
             });
-
+        
             document.getElementById('save-password').addEventListener('click', async () => {
                 const userEmail = localStorage.getItem('userEmail');
                 const currentPassword = document.getElementById('current-password').value;
                 const newPassword = document.getElementById('new-password').value;
                 const confirmNewPassword = document.getElementById('confirm-new-password').value;
-
+        
                 if (newPassword !== confirmNewPassword) {
                     showNotification('New passwords do not match.', 'error');
                     return;
                 }
-
+        
                 try {
                     const usersQuery = query(collection(db, 'users'), where('email', '==', userEmail));
                     const querySnapshot = await getDocs(usersQuery);
-
+        
                     if (!querySnapshot.empty) {
                         const userDoc = querySnapshot.docs[0];
                         const userData = userDoc.data();
                         const hashedCurrentPassword = CryptoJS.SHA256(currentPassword).toString();
-
+        
                         if (hashedCurrentPassword === userData.password) {
                             const hashedNewPassword = CryptoJS.SHA256(newPassword).toString();
                             await updateDoc(doc(db, 'users', userDoc.id), { password: hashedNewPassword });
                             showNotification('Password updated successfully!', 'success');
+        
+                            const emailData = {
+                                to_email: userData.email,
+                                user_name: userData.name,
+                                activation_message: 'Your password has been changed successfully.',
+                                user_type_message: 'If you did not make this change, please contact support immediately.',
+                                features_list: 'Your account security is important to us.',
+                                login_instructions: 'If you did not change your password, please reset it immediately.',
+                            };
+        
+                            await sendEmail(userData.email, "template_frng1sa", emailData);
+        
                             setTimeout(() => {
                                 logOut();
                             }, 2000);
@@ -354,7 +367,7 @@
                     showNotification('Failed to update password.', 'error');
                 }
             });
-
+        
             function showNotification(message, type) {
                 const notification = document.createElement('div');
                 notification.className = `notification ${type}`;
@@ -364,21 +377,21 @@
                     notification.remove();
                 }, 3000);
             }
-
+        
             async function logOut() {
                 const userEmail = localStorage.getItem('userEmail');
-
+        
                 // Log the logout activity to Firestore
                 await logUserActivity("Logout", `User with email ${userEmail} has logged out.`);
-
+        
                 // Clear the login status
                 localStorage.removeItem('isLoggedIn');
                 localStorage.removeItem('userEmail');
-
+        
                 // Redirect to the sign-in page
                 window.location.href = '../pages/sign-in.html';
             }
-
+        
             async function logUserActivity(action, details) {
                 try {
                     await addDoc(collection(db, "userActivityLogs"), {
@@ -392,9 +405,25 @@
                     console.error("Error logging activity: ", error);
                 }
             }
+        
+            async function sendEmail(toEmail, templateId, emailData) {
+                try {
+                    await emailjs.send("service_scwjxdl", templateId, emailData);
+                    console.log("Email sent to:", toEmail);
+                } catch (error) {
+                    console.error("Error sending email:", error);
+                }
+            }
         </script>
-
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+        <!-- Add the EmailJS SDK -->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+        <script type="text/javascript">
+            (function () {
+                emailjs.init("EsxFOFbF-26aaL3gh");
+            })();
+        </script>
 </body>
 
 </html>
